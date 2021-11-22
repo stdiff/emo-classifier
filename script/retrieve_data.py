@@ -9,12 +9,12 @@ sys.path.append(str(PROJ_ROOT))
 from lib import DATA_DIR
 
 
-def download_csv_as_parquet(file_url: str, file_path: Path, sep=","):
+def download_csv_as_parquet(file_url: str, file_path: Path, **kwargs):
     if file_path.exists():
         print("The file of the following URL has already been downloaded. Skipped.")
         print(file_url)
     else:
-        df = pd.read_csv(file_url, sep=sep)
+        df = pd.read_csv(file_url, **kwargs)
         print(f"{file_path.name}: {df.shape[0]} x {df.shape[1]}")
         df.to_parquet(file_path, index=False)
 
@@ -26,7 +26,7 @@ def download_merged_data_sets():
     file_paths = (DATA_DIR / f"{typ}.parquet" for typ in data_set_types)
 
     for file_url, file_path in zip(file_urls, file_paths):
-        download_csv_as_parquet(file_url, file_path, sep="\t")
+        download_csv_as_parquet(file_url, file_path, sep="\t", header=None, names=["text", "emotions", "id"])
 
 
 def download_raw_data_sets():
