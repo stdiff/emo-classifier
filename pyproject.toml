@@ -28,6 +28,7 @@ jupyterlab-templates = "^0.3.1"
 watermark = "^2.2.0"
 altair = "^4.1.0"
 jsonschema = ">=3.0,<4.0"
+pyarrow = "^6.0.1"
 
 [tool.black]
 line-length = 120
