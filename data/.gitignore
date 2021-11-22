@@ -4,3 +4,6 @@
 /goemotions_1.parquet
 /goemotions_2.parquet
 /goemotions_3.parquet
+/train.parquet
+/dev.parquet
+/test.parquet
