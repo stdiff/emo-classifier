@@ -1,4 +1,4 @@
 outs:
 - md5: 12a201e45ad273d6a252eafa1627ce5a
   size: 6225714
-  path: goemotions_3.csv
+  path: goemotions_3.parquet

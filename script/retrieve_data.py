@@ -10,10 +10,10 @@ from lib import DATA_DIR
 
 def main():
     base_url = "https://storage.googleapis.com/gresearch/goemotions/data/full_dataset/"
-    file_name = "goemotions_%s.csv"
+    file_name = "goemotions_%s"
 
-    file_urls = (f"{base_url}{file_name % i}" for i in range(1,4))
-    file_paths = (DATA_DIR / (file_name % i) for i in range(1,4))
+    file_urls = (f"{base_url}{file_name % i}.csv" for i in range(1,4))
+    file_paths = (DATA_DIR / f"{file_name % i}.parquet" for i in range(1,4))
 
     for file_url, file_path in zip(file_urls, file_paths):
         if file_path.exists():
