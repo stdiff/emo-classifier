@@ -12,15 +12,11 @@ DATA_DIR = Path(__file__).parent / "data"
 
 @dataclass
 class JsonArtifact(ABC):
-    @classmethod
-    @abstractmethod
-    def file_name(cls) -> str:
-        """Must return the file name of the artifact."""
-        pass
+    """NB: As the name suggests, all attributes must be JSON serializable."""
 
     @classmethod
     def load(cls) -> "JsonArtifact":
-        file_name = cls.file_name()
+        file_name = f"{cls.__name__}.json"
         with resources.open_text("emo_classifier.data", file_name) as fp:
             data_dict: dict = json.load(fp)
 
@@ -64,10 +60,6 @@ class Thresholds(JsonArtifact):
     sadness: float
     surprise: float
     neutral: float
-
-    @classmethod
-    def file_name(cls) -> str:
-        return f"Thresholds.json"
 
     @classmethod
     def from_pairs(cls, pairs: list[tuple[str, float]]) -> "Thresholds":
