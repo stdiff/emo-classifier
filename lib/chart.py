@@ -8,10 +8,10 @@ def correlation_heatmap(data: pd.DataFrame, annot: bool = True) -> alt.Chart:
     base = alt.Chart(df_corr).transform_fold(fold=df_corr.columns[1:].tolist(), as_=["variable", "value"])
 
     heat = base.mark_rect().encode(
-        x=alt.X("index:N", title=None, axis=alt.Axis(labelAngle=0)),
+        x=alt.X("index:N", title=None, axis=alt.Axis(labelAngle=90)),
         y=alt.Y("variable:N", title=None),
         color=alt.Color("value:Q", scale=alt.Scale(scheme="redblue", domain=[-1, 1]), title="Correlation"),
-        tooltip=["index:N", "variable:N", "value:Q"],
+        tooltip=["index:N", "variable:N", alt.Tooltip("value:Q", format="0.5f")],
     )
 
     if annot:
@@ -72,13 +72,15 @@ def positive_rate_scatter_plot(data_positive_rate: pd.DataFrame):
     """
     chart_base = alt.Chart(data_positive_rate)
 
+    x_axis = alt.X("actual_positive_rate:Q", scale=alt.Scale(type="sqrt", zero=False))
+    y_axis = alt.Y("positive_rate:Q", scale=alt.Scale(type="sqrt", zero=False))
     tooltip = ["label", alt.Tooltip("actual_positive_rate", format="0.2%"), alt.Tooltip("positive_rate", format="0.2%")]
 
     chart_scatter = (
         chart_base.mark_point()
         .encode(
-            x=alt.X("actual_positive_rate:Q", scale=alt.Scale(type="log")),
-            y=alt.Y("positive_rate:Q", scale=alt.Scale(type="log")),
+            x=x_axis,
+            y=y_axis,
             color=alt.condition(
                 alt.datum.actual_positive_rate > alt.datum.positive_rate, alt.value("SteelBlue"), alt.value("Crimson")
             ),
@@ -86,9 +88,8 @@ def positive_rate_scatter_plot(data_positive_rate: pd.DataFrame):
         )
         .properties(title="Actual positive rate vs positive rate")
     )
-
     chart_annotation = chart_base.mark_text(xOffset=5, yOffset=0, align="left").encode(
-        x="actual_positive_rate:Q", y="positive_rate:Q", text="label", tooltip=tooltip
+        x=x_axis, y=y_axis, text="label", tooltip=tooltip
     )
 
     min_diagonal = max(data_positive_rate["actual_positive_rate"].min(), data_positive_rate["positive_rate"].min())
@@ -97,7 +98,7 @@ def positive_rate_scatter_plot(data_positive_rate: pd.DataFrame):
         alt.Chart(alt.sequence(start=min_diagonal, stop=max_diagonal + 0.01, step=0.01, as_="t"))
         .transform_calculate(actual_positive_rate="datum.t", positive_rate="datum.t")
         .mark_line(strokeDash=[5, 5], color="black", size=1)
-        .encode(x="actual_positive_rate:Q", y="positive_rate:Q", order="t:Q")
+        .encode(x=x_axis, y=y_axis, order="t:Q")
     )
 
     return chart_diagonal + chart_scatter + chart_annotation
