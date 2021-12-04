@@ -31,10 +31,18 @@ watermark = "^2.2.0"
 altair = "^4.1.0"
 jsonschema = ">=3.0,<4.0"
 pyarrow = "^6.0.1"
+pytest = "^6.2.5"
 
 [tool.black]
 line-length = 120
 target-version = ["py39"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = [
+    "test/emo_classifier"
+]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
