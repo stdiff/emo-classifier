@@ -113,10 +113,11 @@ class PredictionOnDevSetEvaluator:
             top_wrong_predictions_by_label.append(y_prob.to_frame().head(n).assign(label=label))
 
         top_wrong_predictions = pd.concat(top_wrong_predictions_by_label, axis=0)
-        top_wrong_predictions = pd.merge(top_wrong_predictions, self.X_text.to_frame(), left_index=True, right_index=True)
+        top_wrong_predictions = pd.merge(
+            top_wrong_predictions, self.X_text.to_frame(), left_index=True, right_index=True
+        )
         labels = self.Y_true.apply(lambda r: ",".join([k for k in r.index if r[k] == 1]), axis=1).rename("true_labels")
         return top_wrong_predictions.merge(labels.to_frame(), how="left", left_index=True, right_index=True)
-
 
     def false_positive_by_label(self, n: int = 3) -> pd.DataFrame:
         """

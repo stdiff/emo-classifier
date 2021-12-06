@@ -1,8 +1,7 @@
 from dataclasses import dataclass, asdict
 from pathlib import Path
-from abc import ABC, abstractmethod
+from abc import ABC
 from importlib import resources
-
 import json
 
 import pandas as pd
@@ -28,6 +27,9 @@ class JsonArtifact(ABC):
         with file_path.open("w") as fp:
             json.dump(asdict(self), fp)
         print("SAVED:", file_path.absolute())
+
+    def as_dict(self) -> dict:
+        return asdict(self)
 
 
 @dataclass

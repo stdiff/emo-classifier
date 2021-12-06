@@ -2,5 +2,8 @@
 .vscode
 .idea
 
+## directory for artifact
+dist/
+
 ## temporary working directory
 tmp/

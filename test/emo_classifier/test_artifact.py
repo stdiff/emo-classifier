@@ -10,10 +10,12 @@ file_path = PROJ_ROOT / "emo_classifier/data/DummyJsonArtifact.json"
 if file_path.exists():
     file_path.unlink(missing_ok=True)
 
+
 @dataclass
 class DummyJsonArtifact(JsonArtifact):
     name: str
     value: int
+
 
 def test_save_and_load():
     dummy_json_artifact = DummyJsonArtifact(dummy_name, dummy_value)
