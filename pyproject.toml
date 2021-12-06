@@ -17,6 +17,8 @@ scipy = "^1.7.0"
 numpy = "~1.21.0"
 spacy = ">=3.2.0,<3.3.0"
 en-core-web-md = {url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_md-3.2.0/en_core_web_md-3.2.0-py3-none-any.whl"}
+fastapi = "^0.70.0"
+uvicorn = {extras = ["standard"], version = "^0.15.0"}
 
 [tool.poetry.dev-dependencies]
 jupyterlab = "~3.0"
@@ -43,6 +45,9 @@ addopts = "-ra -q"
 testpaths = [
     "test/emo_classifier"
 ]
+
+[tool.poetry.scripts]
+start = "main:start"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
