@@ -1,6 +1,7 @@
 ## IDE
 .vscode
 .idea
+notebook/.ipynb_checkpoints/
 
 ## directory for artifact
 dist/
