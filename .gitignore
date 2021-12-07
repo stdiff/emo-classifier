@@ -3,6 +3,9 @@
 .idea
 notebook/.ipynb_checkpoints/
 
+## cache
+__pycache__
+
 ## directory for artifact
 dist/
 
