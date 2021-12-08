@@ -5,6 +5,9 @@ phases:
         runtime-versions:
             python: 3.9
         commands:
+            - aws s3 cp s3://stdiff/dvc/binary/dvc_2.8.3_amd64.deb /tmp/dvc_2.8.3_amd64.deb
+            - dpkg -i /tmp/dvc_2.8.3_amd64.deb
+            - dvc pull
             - curl -sSL https://install.python-poetry.org | python3 - --version 1.1.11
             - export PATH=/root/.local/bin:$PATH
             - poetry env use system
