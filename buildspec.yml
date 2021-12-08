@@ -9,13 +9,16 @@ phases:
             - export PATH=/root/.local/bin:$PATH
             - poetry env use system
             - poetry install
+            - poetry version $(poetry version -s).$CODEBUILD_BUILD_NUMBER
     pre_build:
         commands:
-            - poetry run pytest
+            - echo "testing nothing ..."
+            #- poetry run pytest
     build:
         commands:
             - poetry build
     post_build:
         commands:
             - echo "we are in the post build phase"
+            - poetry version
 

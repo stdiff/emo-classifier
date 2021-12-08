@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "emo-classifier"
-version = "0.1.0"
+version = "0"
 description = "Just a demonstration of a PyTorch project with goemotions data set"
 authors = ["Hironori Sakai <crescent.lab@gmail.com>"]
 license = "MIT License"
