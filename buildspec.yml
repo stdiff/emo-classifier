@@ -8,7 +8,7 @@ phases:
             - curl -sSL https://install.python-poetry.org | python3 - --version 1.1.11
             - export PATH=/root/.local/bin:$PATH
             - poetry env use system
-            - poetry install --dev
+            - poetry install
     pre_build:
         commands:
             - pytest
