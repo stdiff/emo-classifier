@@ -15,11 +15,11 @@ phases:
             - poetry version $(poetry version -s).$CODEBUILD_BUILD_NUMBER
     pre_build:
         commands:
+            - dvc repro
             - poetry run pytest
     build:
         commands:
             - poetry build
     post_build:
         commands:
-            - echo "we are in the post build phase"
             - poetry version
