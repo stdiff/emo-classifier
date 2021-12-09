@@ -23,3 +23,7 @@ phases:
     post_build:
         commands:
             - poetry version
+artifacts:
+    files:
+        - dist/emo_classifier-*-py3-none-any.whl
+    s3-prefix: s3://stdiff-public/artifacts/emo-classifier
