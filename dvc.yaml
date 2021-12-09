@@ -1,0 +1,15 @@
+stages:
+  ingestion:
+    cmd: poetry run ingestion
+    outs:
+      - data/train.parquet
+      - data/dev.parquet
+      - data/test.parquet
+  train:
+    cmd: poetry run train
+    deps:
+      - data/train.parquet
+    outs:
+      - emo_classifier/data/TfidfClassifier.joblib
+    metrics:
+      - emo_classifier/data/TrainingMetrics.json

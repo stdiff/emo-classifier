@@ -47,7 +47,9 @@ testpaths = [
 ]
 
 [tool.poetry.scripts]
-start = "main:start"
+ingestion = "script.ingestion:start"
+train = "script.train:start"
+server = "script.server:start"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

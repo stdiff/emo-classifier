@@ -1,0 +1,39 @@
+schema: '2.0'
+stages:
+  retrieve_data:
+    cmd: poetry run ingestion
+    outs:
+    - path: data/dev.parquet
+      md5: c157e8a5aed3095752026471c991f2cf
+      size: 343802
+    - path: data/test.parquet
+      md5: ce8aeea17bad6c34317a6d386c299ac4
+      size: 341195
+    - path: data/train.parquet
+      md5: 855eb1e676e622138bce8d24241ee260
+      size: 2701174
+  ingestion:
+    cmd: poetry run ingestion
+    outs:
+    - path: data/dev.parquet
+      md5: c157e8a5aed3095752026471c991f2cf
+      size: 343802
+    - path: data/test.parquet
+      md5: ce8aeea17bad6c34317a6d386c299ac4
+      size: 341195
+    - path: data/train.parquet
+      md5: 855eb1e676e622138bce8d24241ee260
+      size: 2701174
+  train:
+    cmd: poetry run train
+    deps:
+    - path: data/train.parquet
+      md5: 855eb1e676e622138bce8d24241ee260
+      size: 2701174
+    outs:
+    - path: emo_classifier/data/TfidfClassifier.joblib
+      md5: ee656d17c99c27db09e6dd2712544084
+      size: 35301528
+    - path: emo_classifier/data/TrainingMetrics.json
+      md5: 8303963c7e687fcfd3cf13cb250642ca
+      size: 238

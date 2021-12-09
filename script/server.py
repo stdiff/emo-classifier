@@ -24,4 +24,9 @@ async def prediction(comment: Comment) -> Prediction:
 
 
 def start():
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    """
+    You can start the FastAPI server with the following command
+
+    > poetry run server
+    """
+    uvicorn.run("script.server:app", host="0.0.0.0", port=8000, reload=True)

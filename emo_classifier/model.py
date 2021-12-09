@@ -2,6 +2,7 @@ from typing import BinaryIO, Optional, Union
 from importlib import resources
 from abc import ABC, abstractmethod
 from pathlib import Path
+from datetime import datetime
 
 import joblib
 import numpy as np
@@ -13,7 +14,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.multiclass import OneVsRestClassifier
 
 from emo_classifier.api import Comment, Prediction
-from emo_classifier.artifact import DATA_DIR, Thresholds
+from emo_classifier.artifact import DATA_DIR, Thresholds, TrainingMetrics
 from emo_classifier.text import Tokenizer
 
 
@@ -60,8 +61,9 @@ class TfidfClassifier(Model):
         self._thresholds: Optional[Thresholds] = None
         self._s_thresholds: Optional[pd.Series] = None
         self._emotions: Optional[list[str]] = None
+        self.training_metrics: Optional[TrainingMetrics] = None
 
-    def set_model(self, name: str, classifier: BaseEstimator, param_grid: dict, n_jobs=-1):
+    def set_model(self, name: str, classifier: BaseEstimator, param_grid: dict, n_jobs=4):
         self.model_name = name
         self.param_grid = {f"estimator__{key}": val for key, val in param_grid.items()}
         ## no Pipeline with TFIDF because of memory issue.
@@ -100,7 +102,16 @@ class TfidfClassifier(Model):
         cols = ["rank_test_score", "mean_test_score", "std_test_score", "mean_train_score", "mean_fit_time"]
         cols.extend([c for c in self.model.cv_results_.keys() if c.startswith("param_")])
         self.cv_results = pd.DataFrame(self.model.cv_results_)[cols].sort_values(by="rank_test_score")
+        s_best_result = self.cv_results.iloc[0,:]
 
+        self.training_metrics = TrainingMetrics(
+            model_class = type(self).__name__,
+            model_name = type(self.model).__name__,
+            best_params = self.model.best_params_,
+            validation_score =  s_best_result["mean_test_score"],
+            training_score = s_best_result["mean_train_score"],
+            training_timestamp = datetime.now().astimezone().isoformat(),
+        )
         return self.cv_results
 
     def predict_proba(self, X: Union[pd.Series, np.ndarray]) -> np.ndarray:
@@ -116,6 +127,7 @@ class TfidfClassifier(Model):
 
     def save_artifact_file(self, path: Path):
         joblib.dump(self, path, compress=3)
+        self.training_metrics.save()
 
     def predict(self, comment: Comment) -> Prediction:
         X = np.array([comment.text])
