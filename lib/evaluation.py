@@ -6,8 +6,8 @@ import altair as alt
 
 from sklearn.metrics import precision_recall_curve, precision_recall_fscore_support
 
-from emo_classifier.artifact import Thresholds
-from lib.chart import metrics_scatter_plot, positive_rate_scatter_plot
+from emo_classifier.artifact import Thresholds, DevMetrics, TestMetrics
+from lib.chart import metrics_scatter_plot, positive_rate_scatter_plot, prediction_bar_chart_by_label
 
 
 def f1_score(precision: pd.Series, recall: pd.Series):
@@ -102,6 +102,9 @@ class PredictionOnDevSetEvaluator:
     def macro_f1_score(self) -> float:
         return self.best_thresholds["f1_score"].mean()
 
+    def prediction_bar_chart_by_label(self) -> alt.Chart:
+        return prediction_bar_chart_by_label(df_prob=self.Y_prob)
+
     def _wrong_predictions(self, true_label: int, n: int = 3):
         ascending = true_label == 1
         top_wrong_predictions_by_label = []
@@ -132,6 +135,14 @@ class PredictionOnDevSetEvaluator:
         :return:
         """
         return self._wrong_predictions(true_label=1, n=n)
+
+    def save_dev_metrics(self):
+        scores = {}
+        for label, metrics in self.best_thresholds.set_index("label").iterrows():
+            scores[label] = metrics.to_dict()
+
+        dev_metrics = DevMetrics(macro_f1_score=float(self.macro_f1_score()), scores=scores)
+        dev_metrics.save()
 
 
 class PredictionOnTestSetEvaluator:
@@ -189,3 +200,7 @@ class PredictionOnTestSetEvaluator:
 
     def macro_f1_score(self) -> float:
         return self.metrics_by_label["f1_score"].mean()
+
+    def save_test_metrics(self):
+        test_metrics = TestMetrics(macro_f1_score=self.macro_f1_score())
+        test_metrics.save()

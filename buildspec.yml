@@ -15,8 +15,7 @@ phases:
             - poetry version $(poetry version -s).$CODEBUILD_BUILD_NUMBER
     pre_build:
         commands:
-            - echo "testing nothing ..."
-            #- poetry run pytest
+            - poetry run pytest
     build:
         commands:
             - poetry build

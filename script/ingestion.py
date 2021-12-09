@@ -39,6 +39,7 @@ def download_raw_data_sets():
     for file_url, file_path in zip(file_urls, file_paths):
         download_csv_as_parquet(file_url, file_path, sep=",")
 
+
 def start():
     download_raw_data_sets()
     download_merged_data_sets()

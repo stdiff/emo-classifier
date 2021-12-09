@@ -1,2 +1,5 @@
 /TfidfClassifier.joblib
 /TrainingMetrics.json
+/Thresholds.json
+/DevMetrics.json
+/TestMetrics.json

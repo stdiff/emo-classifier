@@ -37,3 +37,28 @@ stages:
     - path: emo_classifier/data/TrainingMetrics.json
       md5: 8303963c7e687fcfd3cf13cb250642ca
       size: 238
+  evaluate:
+    cmd: poetry run jupyter nbconvert --to HTML --execute notebook/error_analysis.ipynb
+    deps:
+    - path: data/dev.parquet
+      md5: c157e8a5aed3095752026471c991f2cf
+      size: 343802
+    - path: data/test.parquet
+      md5: ce8aeea17bad6c34317a6d386c299ac4
+      size: 341195
+    - path: emo_classifier/data/TfidfClassifier.joblib
+      md5: ee656d17c99c27db09e6dd2712544084
+      size: 35301528
+    outs:
+    - path: emo_classifier/data/DevMetrics.json
+      md5: 0319f44e0dd07722c08d3083115411c3
+      size: 6218
+    - path: emo_classifier/data/TestMetrics.json
+      md5: fa22f20a175508112dde22b7de4f6765
+      size: 38
+    - path: emo_classifier/data/Thresholds.json
+      md5: 2138a10e45842b147e52ac4938290f28
+      size: 892
+    - path: notebook/error_analysis.html
+      md5: 8515e3eb1a21dced806d017473f0cf9e
+      size: 5303905

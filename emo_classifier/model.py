@@ -102,15 +102,15 @@ class TfidfClassifier(Model):
         cols = ["rank_test_score", "mean_test_score", "std_test_score", "mean_train_score", "mean_fit_time"]
         cols.extend([c for c in self.model.cv_results_.keys() if c.startswith("param_")])
         self.cv_results = pd.DataFrame(self.model.cv_results_)[cols].sort_values(by="rank_test_score")
-        s_best_result = self.cv_results.iloc[0,:]
+        s_best_result = self.cv_results.iloc[0, :]
 
         self.training_metrics = TrainingMetrics(
-            model_class = type(self).__name__,
-            model_name = type(self.model).__name__,
-            best_params = self.model.best_params_,
-            validation_score =  s_best_result["mean_test_score"],
-            training_score = s_best_result["mean_train_score"],
-            training_timestamp = datetime.now().astimezone().isoformat(),
+            model_class=type(self).__name__,
+            model_name=type(self.model.best_estimator_).__name__,
+            best_params=self.model.best_params_,
+            validation_score=s_best_result["mean_test_score"],
+            training_score=s_best_result["mean_train_score"],
+            training_timestamp=datetime.now().astimezone().isoformat(),
         )
         return self.cv_results
 

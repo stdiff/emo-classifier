@@ -2,6 +2,25 @@ import altair as alt
 import pandas as pd
 
 
+def adhoc_theme():
+    theme_dict = {
+        "config": {
+            "view": {"height": 400, "width": 800},
+            "title": {"fontSize": 24, "fontWeight": "normal", "titleAlign": "center"},
+            "axisLeft": {"labelFontSize": 14, "titleFontSize": 16},
+            "axisRight": {"labelFontSize": 14, "titleFontSize": 16},
+            "header": {"labelFontSize": 14, "titleFontSize": 16, "titleAlign": "left"},
+            "axisBottom": {"labelFontSize": 14, "titleFontSize": 16},
+            "legend": {"labelFontSize": 12, "titleFontSize": 14},
+            "range": {"category": {"scheme": "category10"}},
+        }
+    }
+    return theme_dict
+
+
+alt.data_transformers.enable("default", max_rows=30000)
+
+
 def correlation_heatmap(data: pd.DataFrame, annot: bool = True) -> alt.Chart:
     df_corr = data.corr().reset_index()
 
@@ -102,3 +121,20 @@ def positive_rate_scatter_plot(data_positive_rate: pd.DataFrame):
     )
 
     return chart_diagonal + chart_scatter + chart_annotation
+
+
+def prediction_bar_chart_by_label(df_prob: pd.DataFrame, sample_size: int = 5_000) -> alt.Chart:
+    labels = df_prob.columns.tolist()
+
+    chart = (
+        alt.Chart(df_prob.sample(n=sample_size, random_state=9))
+        .transform_fold(fold=labels, as_=["emotion", "probability"])
+        .mark_bar()
+        .encode(
+            x=alt.X("probability:Q", bin=alt.Bin(maxbins=30), axis=alt.Axis(format="%"), title=None),
+            y=alt.Y("count():Q", title=None),
+            facet=alt.Facet("emotion:N", columns=6),
+        )
+        .properties(width=120, height=100, title="Histogram of predictions")
+    )
+    return chart

@@ -34,6 +34,7 @@ altair = "^4.1.0"
 jsonschema = ">=3.0,<4.0"
 pyarrow = "^6.0.1"
 pytest = "^6.2.5"
+nbconvert = "^6.3.0"
 
 [tool.black]
 line-length = 120

@@ -6,7 +6,8 @@ from emo_classifier.model import TfidfClassifier
 
 logger = get_logger(__name__)
 
-def train_tfidf(preprocessor:Preprocessor):
+
+def train_tfidf(preprocessor: Preprocessor):
     X_train, Y_train = preprocessor.get_train_X_and_Y()
     logger.info(f"X_train.shape: {X_train.shape}")
     logger.info(f"Y_train.shape: {Y_train.shape}")
@@ -20,11 +21,11 @@ def train_tfidf(preprocessor:Preprocessor):
     logger.info("Training finished")
     tfidf_classifier.save()
 
+
 def start():
     preprocessor = Preprocessor(with_lemmtatization=False)
     train_tfidf(preprocessor)
 
+
 if __name__ == "__main__":
     start()
-
-

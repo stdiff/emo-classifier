@@ -77,20 +77,18 @@ class Thresholds(JsonArtifact):
 class TrainingMetrics(JsonArtifact):
     model_class: str
     model_name: str
-    best_params: dict[str,Union[str,float,int]]
+    best_params: dict[str, Union[str, float, int]]
     validation_score: float
     training_score: float
-    training_timestamp: str ## ISO format with timezone
+    training_timestamp: str  ## ISO format with timezone
 
 
 @dataclass
 class DevMetrics(JsonArtifact):
-    model_class: str
     macro_f1_score: float
-    scores: dict[str, dict[str,float]] # label -> score name -> score
+    scores: dict[str, dict[str, float]]  # label -> score name -> score
 
 
 @dataclass
 class TestMetrics(JsonArtifact):
-    model_class: str
     macro_f1_score: float
