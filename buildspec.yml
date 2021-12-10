@@ -29,5 +29,6 @@ artifacts:
     files:
         - dist/emo_classifier-*-py3-none-any.whl
         - dist/error_analysis-$VERSION.html
-    path: /artifacts/emo-classifier/$VERSION
+    type: s3
+    path: path_in_spec_$VERSION
     discard-path: yes
