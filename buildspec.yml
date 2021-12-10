@@ -29,5 +29,5 @@ artifacts:
     files:
         - dist/emo_classifier-*-py3-none-any.whl
         - dist/error_analysis-$VERSION.html
-    name: artifacts/emo-classifier/$VERSION
+    name: /artifacts/emo-classifier/$VERSION
     discard-path: yes
