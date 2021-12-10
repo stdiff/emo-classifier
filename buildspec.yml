@@ -12,7 +12,8 @@ phases:
             - export PATH=/root/.local/bin:$PATH
             - poetry env use system
             - poetry install
-            - poetry version $(poetry version -s).$CODEBUILD_BUILD_NUMBER
+            - export VERSION=$(poetry version -s).$CODEBUILD_BUILD_NUMBER
+            - poetry version $VERSION
     pre_build:
         commands:
             - dvc repro
@@ -23,7 +24,10 @@ phases:
     post_build:
         commands:
             - poetry version
+            - cp notebook/error_analysis.html dist/error_analysis-$VERSION.html
 artifacts:
     files:
         - dist/emo_classifier-*-py3-none-any.whl
-    s3-prefix: s3://stdiff-public/artifacts/emo-classifier
+        - dist/error_analysis-$VERSION.html
+    name: artifacts/emo-classifier/$VERSION
+    discard-path: yes

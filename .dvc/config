@@ -1,4 +1,4 @@
 [core]
     remote = default
 ['remote "default"']
-    url = s3://stdiff/emo-classifier
+    url = s3://stdiff/dvc/emo-classifier
