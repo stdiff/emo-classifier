@@ -25,10 +25,8 @@ phases:
         commands:
             - poetry version
             - cp notebook/error_analysis.html dist/error_analysis-$VERSION.html
+            - mv dist $VERSION
 artifacts:
     files:
-        - dist/emo_classifier-*-py3-none-any.whl
-        - dist/error_analysis-$VERSION.html
-    type: s3
-    path: path_in_spec_$VERSION
-    discard-path: yes
+        - $VERSION/emo_classifier-*-py3-none-any.whl
+        - $VERSION/error_analysis-$VERSION.html
