@@ -5,7 +5,7 @@ from emo_classifier.api import Comment, Prediction
 
 def test_load_classifier():
     classifier = load_classifier()
-    assert  isinstance(classifier.thresholds, Thresholds)
+    assert isinstance(classifier.thresholds, Thresholds)
 
     comment = Comment(id="abc", text="love love love")
     prediction = classifier.predict(comment)
