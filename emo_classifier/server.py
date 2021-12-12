@@ -25,12 +25,12 @@ async def prediction(comment: Comment) -> Prediction:
 
 def start():
     """
-    You can start the FastAPI server with the following command
+    You can start the FastAPI server with the following command.
 
     > poetry run server
     """
-    uvicorn.run("script.server:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("emo_classifier.server:app", port=8000, reload=True)
 
 
 if __name__ == "__main__":
-    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=False)
+    uvicorn.run("emo_classifier.server:app", host="0.0.0.0", port=8000, reload=False)

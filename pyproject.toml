@@ -51,7 +51,7 @@ testpaths = [
 [tool.poetry.scripts]
 ingestion = "script.ingestion:start"
 train = "script.train:start"
-server = "script.server:start"
+server = "emo_classifier.server:start"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
