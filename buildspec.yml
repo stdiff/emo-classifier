@@ -19,16 +19,17 @@ phases:
             - poetry run black --check */*.py */*/*.py
             - dvc repro
             - poetry run pytest
+            - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
     build:
         commands:
             - poetry build
             - docker build --build-arg VERSION=$VERSION -t emo-classifier:$VERSION .
-            - docker tag emo-classifier:$VERSION 050266116122.dkr.ecr.eu-central-1.amazonaws.com/emo-classifier:$VERSION
+            - docker tag emo-classifier:$VERSION $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/emo-classifier:$VERSION
     post_build:
         commands:
             - cp notebook/error_analysis.html dist/error_analysis-$VERSION.html
             - mv dist $VERSION
-            - docker push 050266116122.dkr.ecr.eu-central-1.amazonaws.com/emo-classifier:$VERSION
+            - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/emo-classifier:$VERSION
 artifacts:
     files:
         - $VERSION/emo_classifier-*-py3-none-any.whl
