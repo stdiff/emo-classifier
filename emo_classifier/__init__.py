@@ -1,4 +1,4 @@
-from emo_classifier.model.tfidf import TfidfClassifier
+from emo_classifier.classifiers.tfidf import TfidfClassifier
 from emo_classifier.artifact import Thresholds
 
 

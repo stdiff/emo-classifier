@@ -2,7 +2,7 @@ from sklearn.linear_model import LogisticRegression
 
 from lib import get_logger
 from lib.preprocessing import Preprocessor
-from emo_classifier.model.tfidf import TfidfClassifier
+from emo_classifier.classifiers.tfidf import TfidfClassifier
 
 logger = get_logger(__name__)
 
