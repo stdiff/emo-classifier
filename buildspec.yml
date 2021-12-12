@@ -16,16 +16,19 @@ phases:
             - poetry version $VERSION
     pre_build:
         commands:
+            - black --check */*.py */*/*.py
             - dvc repro
             - poetry run pytest
     build:
         commands:
             - poetry build
+            - docker build -t emo-classifier:$VERSION .
+            - docker tag emo-classifier:$VERSION 050266116122.dkr.ecr.eu-central-1.amazonaws.com/emo-classifier:$VERSION
     post_build:
         commands:
-            - poetry version
             - cp notebook/error_analysis.html dist/error_analysis-$VERSION.html
             - mv dist $VERSION
+            - docker push 050266116122.dkr.ecr.eu-central-1.amazonaws.com/emo-classifier:$VERSION
 artifacts:
     files:
         - $VERSION/emo_classifier-*-py3-none-any.whl
