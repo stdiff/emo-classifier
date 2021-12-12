@@ -6,6 +6,7 @@ from pathlib import Path
 from emo_classifier.api import Comment, Prediction
 from emo_classifier.artifact import DATA_DIR
 
+
 class Model(ABC):
     @classmethod
     @abstractmethod

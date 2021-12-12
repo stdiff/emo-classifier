@@ -16,6 +16,7 @@ from emo_classifier.artifact import Thresholds, TrainingMetrics
 from emo_classifier.text import Tokenizer
 from emo_classifier.model import Model
 
+
 class TfidfClassifier(Model):
     def __init__(self, tokenizer: Tokenizer, min_df: int, cv: int = 5):
         self.tokenizer = tokenizer
