@@ -22,7 +22,7 @@ phases:
     build:
         commands:
             - poetry build
-            - docker build -t emo-classifier:$VERSION .
+            - docker build --build-arg VERSION=$VERSION -t emo-classifier:$VERSION .
             - docker tag emo-classifier:$VERSION 050266116122.dkr.ecr.eu-central-1.amazonaws.com/emo-classifier:$VERSION
     post_build:
         commands:
