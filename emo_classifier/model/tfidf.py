@@ -14,37 +14,9 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.multiclass import OneVsRestClassifier
 
 from emo_classifier.api import Comment, Prediction
-from emo_classifier.artifact import DATA_DIR, Thresholds, TrainingMetrics
+from emo_classifier.artifact import Thresholds, TrainingMetrics
 from emo_classifier.text import Tokenizer
-
-
-class Model(ABC):
-    @classmethod
-    @abstractmethod
-    def load_artifact_file(cls, fp: BinaryIO):
-        pass
-
-    @classmethod
-    def load(cls) -> "Model":
-        file_name = f"{cls.__name__}.joblib"
-        with resources.open_binary("emo_classifier.data", file_name) as fp:
-            model = cls.load_artifact_file(fp)
-        print(f"LOADED: {type(model).__name__} instance")
-        return model
-
-    @abstractmethod
-    def save_artifact_file(self, path: Path):
-        pass
-
-    def save(self):
-        file_path = DATA_DIR / f"{type(self).__name__}.joblib"
-        self.save_artifact_file(file_path)
-        print("SAVED:", file_path.absolute())
-
-    @abstractmethod
-    def predict(self, comment: Comment) -> Prediction:
-        pass
-
+from emo_classifier.model import Model
 
 class TfidfClassifier(Model):
     def __init__(self, tokenizer: Tokenizer, min_df: int, cv: int = 5):
