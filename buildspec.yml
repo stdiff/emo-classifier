@@ -16,7 +16,7 @@ phases:
             - poetry version $VERSION
     pre_build:
         commands:
-            - black --check */*.py */*/*.py
+            - poetry run black --check */*.py */*/*.py
             - dvc repro
             - poetry run pytest
     build:
