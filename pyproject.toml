@@ -15,6 +15,7 @@ scipy = "~1.7.0"
 numpy = "~1.21.0"
 spacy = ">=3.2.0,<3.3.0"
 en-core-web-md = {url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_md-3.2.0/en_core_web_md-3.2.0-py3-none-any.whl"}
+torchtext = {version = "~0.10.0", python = "~3.9", platform = "linux"}
 fastapi = "~0.70.0"
 uvicorn = {extras = ["standard"], version = "~0.15.0"}
 
@@ -34,7 +35,6 @@ pyarrow = "^6.0.1"
 pytest = "^6.2.5"
 nbconvert = "^6.3.0"
 torch = {version = "~1.9.0", python = "~3.9", platform = "linux"}
-torchtext = {version = "~0.10.0", python = "~3.9", platform = "linux"}
 pytorch-lightning = "~1.4.9"
 
 [tool.black]
