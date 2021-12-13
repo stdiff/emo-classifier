@@ -3,13 +3,14 @@ from typing import Optional
 import pandas as pd
 import altair as alt
 
-from lib import DATA_DIR
+from lib import DATA_DIR, get_logger
 from lib.chart import correlation_heatmap
 from emo_classifier.emotion import load_emotions, vectorize_series_of_emotions
 from emo_classifier.text import Tokenizer
 
 
 LazyDataFrame = Optional[pd.DataFrame]
+logger = get_logger(__name__)
 
 
 class Preprocessor:
@@ -37,7 +38,7 @@ class Preprocessor:
             .set_index("id")
             .drop("emotions", axis=1)
         )
-        print("LOADED: %s x %s" % df.shape)
+        logger.info(f"LOADED: file = {file_name}, shape = {df.shape}")
         return df
 
     @property

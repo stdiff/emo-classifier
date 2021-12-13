@@ -3,19 +3,21 @@ from pathlib import Path
 
 import pandas as pd
 
+from lib import get_logger
+
 PROJ_ROOT = Path(__file__).parents[1]
 sys.path.append(str(PROJ_ROOT))
+logger = get_logger(__name__)
 
 from lib import DATA_DIR
 
 
 def download_csv_as_parquet(file_url: str, file_path: Path, **kwargs):
     if file_path.exists():
-        print("The file of the following URL has already been downloaded. Skipped.")
-        print(file_url)
+        logger.info(f"The file exists. Nothing is downloaded. Path = {file_path.relative_to(PROJ_ROOT)}")
     else:
         df = pd.read_csv(file_url, **kwargs)
-        print(f"{file_path.name}: {df.shape[0]} x {df.shape[1]}")
+        logger.info(f"{file_path.name}: {df.shape[0]} x {df.shape[1]}")
         df.to_parquet(file_path, index=False)
 
 
