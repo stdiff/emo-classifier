@@ -1,11 +1,5 @@
 version: 0.2
 
-env:
-    variables:
-        AWS_DEFAULT_REGION: "eu-central-1"
-        AWS_ACCOUNT_ID: "050266116122"
-        IMAGE_REPO_NAME: "emo-classifier"
-
 phases:
     install:
         runtime-versions:
