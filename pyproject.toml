@@ -4,7 +4,7 @@ version = "0"
 description = "Just a demonstration of a PyTorch project with goemotions data set"
 authors = ["Hironori Sakai <crescent.lab@gmail.com>"]
 license = "MIT License"
-include = ["emo_classifier/data/*"]
+include = ["emo_classifier/artifact/*", "emo_classifier/resources/*"]
 
 ## libraries for deployable package
 [tool.poetry.dependencies]
