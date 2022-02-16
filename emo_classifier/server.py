@@ -1,7 +1,7 @@
 import uvicorn
 from fastapi import FastAPI
 
-from emo_classifier import load_classifier
+from emo_classifier.classifiers import load_classifier
 from emo_classifier.api import Comment, Prediction
 
 classifier = load_classifier()

@@ -13,6 +13,21 @@ LazyDataFrame = Optional[pd.DataFrame]
 logger = get_logger(__name__)
 
 
+def load_data(file_name: str, emotions: list[str]) -> pd.DataFrame:
+    """
+    :param file_name: file name (not a path)
+    :return: DataFrame[text, admiration, amusement, ..., neutral]. id is the index.
+    """
+    df = pd.read_parquet(DATA_DIR / file_name)
+    df = (
+        pd.concat([df, vectorize_series_of_emotions(df["emotions"], emotions=emotions)], axis=1)
+        .set_index("id")
+        .drop("emotions", axis=1)
+    )
+    logger.info(f"LOADED: file = {file_name}, shape = {df.shape}")
+    return df
+
+
 class Preprocessor:
     emotions = load_emotions()
 
@@ -26,37 +41,22 @@ class Preprocessor:
         self._df_positive_rate: LazyDataFrame = None
         self.tokenizer = Tokenizer(with_lemmatization=with_lemmtatization)
 
-    @classmethod
-    def _load_data(cls, file_name: str):
-        """
-        :param file_name: file name (not a path)
-        :return: DataFrame[text, admiration, amusement, ..., neutral]. id is the index.
-        """
-        df = pd.read_parquet(DATA_DIR / file_name)
-        df = (
-            pd.concat([df, vectorize_series_of_emotions(df["emotions"], emotions=cls.emotions)], axis=1)
-            .set_index("id")
-            .drop("emotions", axis=1)
-        )
-        logger.info(f"LOADED: file = {file_name}, shape = {df.shape}")
-        return df
-
     @property
     def df_train(self) -> pd.DataFrame:
         if self._df_train is None:
-            self._df_train = self._load_data("train.parquet")
+            self._df_train = load_data("train.parquet", self.emotions)
         return self._df_train
 
     @property
     def df_dev(self) -> pd.DataFrame:
         if self._df_dev is None:
-            self._df_dev = self._load_data("dev.parquet")
+            self._df_dev = load_data("dev.parquet", self.emotions)
         return self._df_dev
 
     @property
     def df_test(self) -> pd.DataFrame:
         if self._df_test is None:
-            self._df_test = self._load_data("test.parquet")
+            self._df_test = load_data("test.parquet", self.emotions)
         return self._df_test
 
     @property

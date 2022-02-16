@@ -1,5 +1,5 @@
-from emo_classifier import load_classifier
-from emo_classifier.artifact import Thresholds
+from emo_classifier.classifiers import load_classifier
+from emo_classifier.metrics import Thresholds
 from emo_classifier.api import Comment, Prediction
 
 

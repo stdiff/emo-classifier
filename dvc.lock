@@ -1,17 +1,5 @@
 schema: '2.0'
 stages:
-  retrieve_data:
-    cmd: poetry run ingestion
-    outs:
-    - path: data/dev.parquet
-      md5: c157e8a5aed3095752026471c991f2cf
-      size: 343802
-    - path: data/test.parquet
-      md5: ce8aeea17bad6c34317a6d386c299ac4
-      size: 341195
-    - path: data/train.parquet
-      md5: 855eb1e676e622138bce8d24241ee260
-      size: 2701174
   ingestion:
     cmd: poetry run ingestion
     outs:
@@ -31,11 +19,12 @@ stages:
       md5: 448ece955a8322da1a4669358505ae82
       size: 2701174
     outs:
-    - path: emo_classifier/data/TfidfClassifier.joblib
-      md5: 4a110df85f2230803bdae6d5d519637d
-      size: 35301665
-    - path: emo_classifier/data/TrainingMetrics.json
-      md5: 1bbd80ef7f895c86243b1ee40368fa2e
+    - path: emo_classifier/artifact/
+      md5: fad44cb6e403330e2b7ce60488938f6a.dir
+      size: 35301614
+      nfiles: 3
+    - path: emo_classifier/resources/TrainingMetrics.json
+      md5: 823358e711d8cc20a731cd0bbe66fb02
       size: 245
   evaluate:
     cmd: poetry run jupyter nbconvert --to HTML --execute notebook/error_analysis.ipynb
@@ -46,19 +35,23 @@ stages:
     - path: data/test.parquet
       md5: ce9bd635ae1c766770083c6a5b7973a7
       size: 341195
-    - path: emo_classifier/data/TfidfClassifier.joblib
-      md5: 4a110df85f2230803bdae6d5d519637d
-      size: 35301665
+    - path: emo_classifier/artifact
+      md5: fad44cb6e403330e2b7ce60488938f6a.dir
+      size: 35301614
+      nfiles: 3
     outs:
-    - path: emo_classifier/data/DevMetrics.json
+    - path: emo_classifier/resources/DevMetrics.json
       md5: 0319f44e0dd07722c08d3083115411c3
       size: 6218
-    - path: emo_classifier/data/TestMetrics.json
+    - path: emo_classifier/resources/TestMetrics.json
       md5: fa22f20a175508112dde22b7de4f6765
       size: 38
-    - path: emo_classifier/data/Thresholds.json
+    - path: emo_classifier/resources/Thresholds.json
       md5: 2138a10e45842b147e52ac4938290f28
       size: 892
+    - path: emo_classifier/resources/test_predictions.parquet
+      md5: 6652f91ca715d3b3d30d70b1c54d0240
+      size: 1661889
     - path: notebook/error_analysis.html
-      md5: 373720eccf1f4b953c1735d42031b701
-      size: 5304135
+      md5: 2d907121cb03bbe2032adc6d2d1b5edb
+      size: 5304169

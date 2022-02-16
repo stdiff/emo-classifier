@@ -10,19 +10,19 @@ stages:
     deps:
       - data/train.parquet
     outs:
-      - emo_classifier/data/TfidfClassifier.joblib
+      - emo_classifier/artifact/
     metrics:
-      - emo_classifier/data/TrainingMetrics.json
+      - emo_classifier/resources/TrainingMetrics.json
   evaluate:
     cmd: poetry run jupyter nbconvert --to HTML --execute notebook/error_analysis.ipynb
     deps:
       - data/dev.parquet
       - data/test.parquet
-      ## You have to change this dependency if you create another classifier
-      - emo_classifier/data/TfidfClassifier.joblib
+      - emo_classifier/artifact
     outs:
-      - emo_classifier/data/Thresholds.json
+      - emo_classifier/resources/Thresholds.json
+      - emo_classifier/resources/test_predictions.parquet
       - notebook/error_analysis.html
     metrics:
-      - emo_classifier/data/DevMetrics.json
-      - emo_classifier/data/TestMetrics.json
+      - emo_classifier/resources/DevMetrics.json
+      - emo_classifier/resources/TestMetrics.json

@@ -1,12 +1,5 @@
-from emo_classifier.classifiers.tfidf import TfidfClassifier
-from emo_classifier.artifact import Thresholds
+from pathlib import Path
 
-
-def load_model():
-    return TfidfClassifier.load()
-
-
-def load_classifier():
-    classifier = load_model()
-    classifier.thresholds = Thresholds.load()
-    return classifier
+LIB_ROOT = Path(__file__).parent
+RESOURCES_DIR = LIB_ROOT / "resources"
+ARTIFACT_DIR = LIB_ROOT / "artifact"

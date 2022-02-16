@@ -5,7 +5,7 @@ from scipy.sparse import coo_matrix
 
 
 def load_emotions() -> list[str]:
-    with resources.open_text("emo_classifier.data", "emotions.txt") as fp:
+    with resources.open_text("emo_classifier.resources", "emotions.txt") as fp:
         return [line.rstrip() for line in fp]
 
 

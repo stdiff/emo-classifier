@@ -1,13 +1,12 @@
 from typing import Union
 from dataclasses import dataclass, asdict
-from pathlib import Path
 from abc import ABC
 from importlib import resources
 import json
 
 import pandas as pd
 
-DATA_DIR = Path(__file__).parent / "data"
+from emo_classifier import RESOURCES_DIR
 
 
 @dataclass
@@ -17,14 +16,14 @@ class JsonArtifact(ABC):
     @classmethod
     def load(cls) -> "JsonArtifact":
         file_name = f"{cls.__name__}.json"
-        with resources.open_text("emo_classifier.data", file_name) as fp:
+        with resources.open_text("emo_classifier.resources", file_name) as fp:
             data_dict: dict = json.load(fp)
 
         print(f"LOADED: {type(data_dict)}")
         return cls(**data_dict)
 
     def save(self):
-        file_path = DATA_DIR / f"{type(self).__name__}.json"
+        file_path = RESOURCES_DIR / f"{type(self).__name__}.json"
         with file_path.open("w") as fp:
             json.dump(asdict(self), fp)
         print("SAVED:", file_path.absolute())
@@ -70,7 +69,9 @@ class Thresholds(JsonArtifact):
         return Thresholds(**label2threshold)
 
     def as_series(self) -> pd.Series:
-        return pd.Series(asdict(self), name="threshold")
+        s_threshold = pd.Series(asdict(self), name="threshold")
+        s_threshold.index.name = "label"
+        return s_threshold
 
 
 @dataclass

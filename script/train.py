@@ -8,6 +8,7 @@ logger = get_logger(__name__)
 
 
 def train_tfidf(preprocessor: Preprocessor):
+    logger.info("Training TFIDF model")
     X_train, Y_train = preprocessor.get_train_X_and_Y()
     logger.info(f"X_train.shape: {X_train.shape}")
     logger.info(f"Y_train.shape: {Y_train.shape}")

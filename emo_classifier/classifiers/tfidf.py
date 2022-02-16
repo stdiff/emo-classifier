@@ -12,12 +12,14 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.multiclass import OneVsRestClassifier
 
 from emo_classifier.api import Comment, Prediction
-from emo_classifier.artifact import Thresholds, TrainingMetrics
+from emo_classifier.metrics import Thresholds, TrainingMetrics
 from emo_classifier.text import Tokenizer
 from emo_classifier.model import Model
 
 
 class TfidfClassifier(Model):
+    artifact_file_name = "tfidf.joblib"
+
     def __init__(self, tokenizer: Tokenizer, min_df: int, cv: int = 5):
         self.tokenizer = tokenizer
         self.min_df = min_df

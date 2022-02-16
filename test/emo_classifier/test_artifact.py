@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 
-from emo_classifier.artifact import JsonArtifact
+from emo_classifier.metrics import JsonArtifact
 from lib import PROJ_ROOT
 
 dummy_name = "dummy_name"
 dummy_value = 1234
-file_path = PROJ_ROOT / "emo_classifier/data/DummyJsonArtifact.json"
+file_path = PROJ_ROOT / "emo_classifier/resources/DummyJsonArtifact.json"
 
 if file_path.exists():
     file_path.unlink(missing_ok=True)
