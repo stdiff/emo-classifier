@@ -63,8 +63,6 @@ class LocalPaths:
 
 
 class TrainerBase(ABC):
-    """ """
-
     def __init__(self, log_file: Optional[Path] = None, classifier: Optional[Model] = None):
         self.logger = setup_logger(type(self).__name__, log_file=log_file)
         self.classifier = classifier

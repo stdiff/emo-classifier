@@ -6,10 +6,11 @@ from enum import Enum
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import tarfile
+import shutil
 import json
 
-
 from sagemaker.s3 import S3Uploader, S3Downloader
+from sagemaker.estimator import Estimator
 
 from training import get_logger, PROJ_ROOT, LocalPaths
 
@@ -78,7 +79,7 @@ def archive_training_modules(tar_ball_path: Path):
     if tar_ball_path.exists():
         logger.warning(f"The tar ball will be overwritten.")
 
-    pkg_dir = PROJ_ROOT / "emo_classifier"
+    pkg_dir = local_paths.project_root / "emo_classifier"
 
     with tarfile.open(tar_ball_path, "w:gz") as tar_file:
 
@@ -161,7 +162,57 @@ def download_sagemaker_outputs_to_local(model_tarball_s3_path: str):
             raise FileNotFoundError(f"Download failed: S3 URI = {output_tarball_s3_path}")
 
         with tarfile.open(output_tarball_local_path, "r:gz") as output_tarball:
+            ## name of the
             output_tarball.extractall(local_paths.dir_resources)
             logger.info(
                 f"The archived files in {output_tarball_local_path.name} is saved under {local_paths.dir_resources}"
             )
+
+
+def copy_artifacts_for_outputs_if_on_sagemaker():
+    """
+    The artifacts of the training process will be created under artifacts/ or resources/.
+    This function copies such files under certain directories only if we are on a SageMaker instance.
+    """
+    if local_paths.on_sagemaker:
+        for file in local_paths.dir_artifact.iterdir():
+            if not file.is_dir():
+                shutil.copy(file, local_paths.sm_model_dir)
+        for file in local_paths.dir_resources.iterdir():
+            if not file.is_dir() and file.name != "success":
+                shutil.copy(file, local_paths.sm_output_data_dir.parent)
+
+
+def start_sagemaker_training_job(
+    base_job_name: str,
+    entry_point: Path,
+    tags: list[dict[str, str]],
+    instance_type: str = InstanceType.local,
+    instance_count: int = 1,
+    max_run_in_hour: int = 3,
+    **hyperparameters,
+):
+    datasets_dir_in_s3 = upload_datasets("train.parquet")
+    sourcedir_s3_uri = upload_sourcedir()
+    hyperparameters4estimator = generate_base_hyperparameters(entry_point, sourcedir_s3_uri)
+
+    for param, value in hyperparameters.items():
+        hyperparameters4estimator[param] = value
+
+    estimator = Estimator(
+        image_uri=custom_image_uri,
+        role=role,
+        instance_count=instance_count,
+        instance_type=instance_type,
+        base_job_name=base_job_name,
+        output_path=f"{project_root_s3}/output",
+        hyperparameters=hyperparameters4estimator,
+        use_spot_instances=False if instance_type == InstanceType.local else True,
+        max_run=60 * 60 * max_run_in_hour,
+        max_wait=60 * 60 * max_run_in_hour,
+        tags=tags,
+    )
+
+    estimator.fit({"datasets": datasets_dir_in_s3})
+    model_tarball_s3_path = estimator.model_data
+    download_sagemaker_outputs_to_local(model_tarball_s3_path)
