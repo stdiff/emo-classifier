@@ -31,7 +31,7 @@ class TfidfClassifier(Model):
         self._model: Optional[OneVsRestClassifier] = None
         self._thresholds: Optional[Thresholds] = None
         self._s_thresholds: Optional[pd.Series] = None
-        self._dict_thresholds: Optional[dict[str,float]] = None
+        self._dict_thresholds: Optional[dict[str, float]] = None
         self._emotions: list[str] = load_emotions()
 
     @property
