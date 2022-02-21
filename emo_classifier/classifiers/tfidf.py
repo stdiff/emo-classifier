@@ -31,6 +31,7 @@ class TfidfClassifier(Model):
         self._model: Optional[OneVsRestClassifier] = None
         self._thresholds: Optional[Thresholds] = None
         self._s_thresholds: Optional[pd.Series] = None
+        self._dict_thresholds: Optional[dict[str,float]] = None
         self._emotions: list[str] = load_emotions()
 
     @property
@@ -46,13 +47,14 @@ class TfidfClassifier(Model):
         self._model = model
 
     @property
-    def thresholds(self) -> Optional[pd.Series]:
+    def thresholds(self) -> Optional[Thresholds]:
         return self._thresholds
 
     @thresholds.setter
     def thresholds(self, thresholds: Thresholds):
         self._thresholds = thresholds
         self._s_thresholds = thresholds.as_series()[self._emotions]
+        self._dict_thresholds = thresholds.as_dict()
 
     def predict_proba(self, X: Union[pd.Series, np.ndarray]) -> np.ndarray:
         """
@@ -76,7 +78,7 @@ class TfidfClassifier(Model):
     def predict(self, comment: Comment) -> Prediction:
         X = np.array([comment.text])
         y = self.predict_labels(X)[0, :]
-        emotions = [emotion for i, emotion in enumerate(self._emotions) if y[i] > self.thresholds.get(emotion)]
+        emotions = [emotion for i, emotion in enumerate(self._emotions) if y[i] > self._dict_thresholds.get(emotion)]
         return Prediction(id=comment.id, labels=emotions)
 
     @classmethod
