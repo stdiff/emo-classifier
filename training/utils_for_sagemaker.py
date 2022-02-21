@@ -4,7 +4,10 @@ Therefore, do not import this module from the training scripts on the sagemaker.
 """
 from enum import Enum
 from pathlib import Path
+from tempfile import TemporaryDirectory
 import tarfile
+import json
+
 
 from sagemaker.s3 import S3Uploader, S3Downloader
 
@@ -14,7 +17,9 @@ logger = get_logger(__name__)
 region = "eu-central-1"
 role = "AmazonSageMaker-ExecutionRole-20210315T231867"
 project_root_s3 = "s3://stdiff/sagemaker/emo-classifier"
+custom_image_uri = "050266116122.dkr.ecr.eu-central-1.amazonaws.com/smage:py39ml13"
 local_paths = LocalPaths()
+
 
 class InstanceType(str, Enum):
     """
@@ -22,6 +27,7 @@ class InstanceType(str, Enum):
     https://aws.amazon.com/sagemaker/pricing/
     """
 
+    local = "local"
     ml_m5_large = "ml.m5.large"  ## vCPU = 2, RAM =  8GB, no GPU, $0.138 per hour
     ml_m5_xlarge = "ml.m5.xlarge"  # vCPU = 4, RAM = 16 GiB, no GPU, $0.276 per hour
     ml_g4dn_xlarge = "ml.g4dn.xlarge"  ## vCPU = 4, RAM = 16GiB, GPU enabled, $0.921 per hour
@@ -35,6 +41,27 @@ def generate_tag_list(**kwargs) -> list[dict[str, str]]:
     :param kwargs: key1=value1, key2=value2, ...
     """
     return [{"Key": key, "Value": value} for key, value in kwargs.items()]
+
+
+def upload_datasets(*file_names) -> str:
+    """
+    Upload files under data/
+
+    :param file_names: names of files to upload (as positional arguments)
+    :return: S3 path to the datasets directory (SageMaker Estimator will need it.)
+    """
+    uploaded_files_in_s3: list[str] = []
+    datasets_dir_in_s3 = f"{project_root_s3}/datasets"
+
+    for file_name in file_names:
+        file_path = local_paths.dir_datasets / file_name
+        if not file_path.exists():
+            raise FileNotFoundError(f"Not Found: {file_path}")
+        uploaded_file_in_s3 = S3Uploader.upload(str(file_path), desired_s3_uri=datasets_dir_in_s3)
+        logger.info(f"Uploaded: {file_path} → {uploaded_file_in_s3}")
+        uploaded_files_in_s3.append(uploaded_file_in_s3)
+
+    return datasets_dir_in_s3
 
 
 def archive_training_modules(tar_ball_path: Path):
@@ -67,16 +94,74 @@ def archive_training_modules(tar_ball_path: Path):
             tar_file.add(str(file), file.relative_to(PROJ_ROOT))
 
 
-def upload_datasets(file_names: list[str]) -> list[str]:
-    uploaded_files_in_s3: list[str] = []
-    datasets_dir_in_s3 = f"{project_root_s3}/datasets"
+def upload_sourcedir() -> str:
+    """
+    create a tar ball for SageMaker training job and upload it to the
+    :return: S3 path to the uploaded sourcedir.tar.gz
+    """
+    with TemporaryDirectory() as temp_dir:
+        temp_dir_path = Path(temp_dir)
+        source_tar_ball_path = temp_dir_path / "sourcedir.tar.gz"
+        archive_training_modules(source_tar_ball_path)
+        sourcedir_s3_uri = S3Uploader.upload(str(source_tar_ball_path), desired_s3_uri=f"{project_root_s3}/code")
+        logger.info(f"Tar ball uploaded: {sourcedir_s3_uri}")
 
-    for file_name in file_names:
-        file_path = local_paths.dir_datasets / file_name
-        if not file_path.exists():
-            raise FileNotFoundError(f"Not Found: {file_path}")
-        uploaded_file_in_s3 = S3Uploader.upload(str(file_path), desired_s3_uri=datasets_dir_in_s3)
-        logger.info(f"Uploaded: {file_path} → {uploaded_file_in_s3}")
-        uploaded_files_in_s3.append(uploaded_file_in_s3)
+    return sourcedir_s3_uri
 
-    return uploaded_files_in_s3
+
+def generate_base_hyperparameters(entry_point: Path, sourcedir_s3_uri) -> dict[str, str]:
+    """
+    generate a template hyperparameters dict for SageMaker Estimator.
+    This function is convenient if we use a custom Docker image to train a model.
+
+    :return: dict for hyperparameters argument of Estimator
+    """
+    hyperparameters = {
+        "sagemaker_program": str(entry_point.relative_to(local_paths.project_root)),
+        "sagemaker_submit_directory": sourcedir_s3_uri,
+    }
+    return {str(k): json.dumps(v) for k, v in hyperparameters.items()}
+
+
+def download_sagemaker_outputs_to_local(model_tarball_s3_path: str):
+    """
+    Download output files (model.tar.gz and output.tar.gz) from S3,
+    extract the archive files and move the extracted files under
+    suitable directory. More precisely
+
+    - Files in model.tar.gz go to artifact directory
+    - Files in output.tar.gz go to resources directory
+
+    :param model_tarball_s3_path: S3 URI of the model.tar.gz
+    """
+    ## TODO: we need a better way to get the S3 path to output.tar.gz. How about cloudpathlib?
+    output_tarball_s3_path = model_tarball_s3_path.replace("model.tar.gz", "output.tar.gz")
+
+    with TemporaryDirectory() as temp_dir:
+        temp_dir_path = Path(temp_dir)
+
+        model_tarball_local_path = temp_dir_path / "model.tar.gz"
+
+        try:
+            S3Downloader.download(model_tarball_s3_path, str(model_tarball_local_path.parent))
+        except Exception:
+            raise FileNotFoundError(f"Download failed: S3 URI = {model_tarball_s3_path}")
+
+        with tarfile.open(model_tarball_local_path, "r:gz") as model_tarball:
+            model_tarball.extractall(local_paths.dir_artifact)
+            logger.info(
+                f"The archived files in {model_tarball_local_path.name} is saved under {local_paths.dir_artifact}"
+            )
+
+        output_tarball_local_path = temp_dir_path / "output.tar.gz"
+
+        try:
+            S3Downloader.download(output_tarball_s3_path, str(output_tarball_local_path.parent))
+        except Exception:
+            raise FileNotFoundError(f"Download failed: S3 URI = {output_tarball_s3_path}")
+
+        with tarfile.open(output_tarball_local_path, "r:gz") as output_tarball:
+            output_tarball.extractall(local_paths.dir_resources)
+            logger.info(
+                f"The archived files in {output_tarball_local_path.name} is saved under {local_paths.dir_resources}"
+            )
