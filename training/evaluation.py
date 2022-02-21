@@ -7,24 +7,31 @@ from sklearn.metrics import precision_recall_curve, precision_recall_fscore_supp
 
 from emo_classifier import RESOURCES_DIR
 from emo_classifier.metrics import Thresholds, DevMetrics, TestMetrics
-from lib.chart import metrics_scatter_plot, positive_rate_scatter_plot, prediction_bar_chart_by_label
+from training.chart import metrics_scatter_plot, positive_rate_scatter_plot, prediction_bar_chart_by_label
 
 
 def f1_score(precision: pd.Series, recall: pd.Series):
     return 2 * precision * recall / (precision + recall)
 
 
-def precision_recall_dataframe(y_true: pd.Series, y_prob: pd.Series):
-    precision, recall, threshold = precision_recall_curve(y_true, y_prob)
+def precision_recall_dataframe(y_true: pd.Series, y_prob: pd.Series) -> pd.DataFrame:
+    """
+    compute metrics for binary classifications (except accuracy) for each threshold
 
+    :param y_true: series of true binary labels (i.e. 0 or 1)
+    :param y_prob: series of probabilities of the positive label
+    :return: DataFrame[threshold, precision, recall, f1_score]
+    """
+    precision, recall, threshold = precision_recall_curve(y_true, y_prob)
     df_metrics = pd.DataFrame({"threshold": threshold, "precision": precision[:-1], "recall": recall[:-1]})
     df_metrics["f1_score"] = f1_score(df_metrics["precision"], df_metrics["recall"])
-
     return df_metrics
 
 
 class PredictionOnDevSetEvaluator:
     """pick the thresholds and do error analysis"""
+
+    prediction_parquet_path = RESOURCES_DIR / "dev_predictions.parquet"
 
     def __init__(self, Y_true: pd.DataFrame, Y_prob: Union[pd.DataFrame, np.ndarray], X_text: pd.Series):
         if not isinstance(Y_true, pd.DataFrame):
@@ -143,11 +150,38 @@ class PredictionOnDevSetEvaluator:
         dev_metrics = DevMetrics(macro_f1_score=float(self.macro_f1_score()), scores=scores)
         dev_metrics.save()
 
+    def save_prediction(self):
+        """
+        Save the prediction. The schema must be as follows.
+
+        - id: document id
+        - label: label (emotion class)
+        - target: if the document belongs to the label (0 or 1)
+        - probability: predicted probability
+        - threshold: threshold of the label
+        - prediction: the prediction says if the document belongs to the label (0 or 1)
+        """
+        df_prediction = (
+            self.Y_true.reset_index()
+            .melt(id_vars="id", var_name="label", value_name="target")
+            .merge(
+                self.Y_prob.reset_index().melt(id_vars="id", var_name="label", value_name="probability"),
+            )
+            .merge(self.thresholds().as_series().reset_index())
+        )
+        df_prediction["prediction"] = (df_prediction["probability"] >= df_prediction["threshold"]).astype(int)
+        df_prediction.to_parquet(self.prediction_parquet_path, index=False)
+
+    def save_thresholds_metrics_and_predictions(self):
+        self.thresholds().save()
+        self.save_dev_metrics()
+        self.save_prediction()
+
 
 class PredictionOnTestSetEvaluator:
     """No threshold choice, no detailed analysis."""
 
-    prediction_parquet_path = RESOURCES_DIR / "test_predictions.parquet"
+    # prediction_parquet_path = RESOURCES_DIR / "test_predictions.parquet"
 
     def __init__(self, Y_true: pd.DataFrame, Y_prob: Union[pd.DataFrame, np.ndarray], thresholds: Thresholds):
         if not isinstance(Y_true, pd.DataFrame):
@@ -164,29 +198,29 @@ class PredictionOnTestSetEvaluator:
 
         self.thresholds = thresholds
         self._metrics_by_label: Optional[pd.DataFrame] = None
-        self.save_prediction()
+        # self.save_prediction()
 
-    def save_prediction(self):
-        """
-        Save the prediction on the test set. The schema must be as follows.
-
-        - id: document id
-        - label: label (emotion class)
-        - target: if the document belongs to the label (0 or 1)
-        - probability: predicted probability
-        - threshold: threshold of the label
-        - prediction: the prediction says if the document belongs to the label (0 or 1)
-        """
-        df_prediction = (
-            self.Y_true.reset_index()
-            .melt(id_vars="id", var_name="label", value_name="target")
-            .merge(
-                self.Y_prob.reset_index().melt(id_vars="id", var_name="label", value_name="probability"),
-            )
-            .merge(self.thresholds.as_series().reset_index())
-        )
-        df_prediction["prediction"] = (df_prediction["probability"] >= df_prediction["threshold"]).astype(int)
-        df_prediction.to_parquet(self.prediction_parquet_path, index=False)
+    # def save_prediction(self):
+    #     """
+    #     Save the prediction on the test set. The schema must be as follows.
+    #
+    #     - id: document id
+    #     - label: label (emotion class)
+    #     - target: if the document belongs to the label (0 or 1)
+    #     - probability: predicted probability
+    #     - threshold: threshold of the label
+    #     - prediction: the prediction says if the document belongs to the label (0 or 1)
+    #     """
+    #     df_prediction = (
+    #         self.Y_true.reset_index()
+    #         .melt(id_vars="id", var_name="label", value_name="target")
+    #         .merge(
+    #             self.Y_prob.reset_index().melt(id_vars="id", var_name="label", value_name="probability"),
+    #         )
+    #         .merge(self.thresholds.as_series().reset_index())
+    #     )
+    #     df_prediction["prediction"] = (df_prediction["probability"] >= df_prediction["threshold"]).astype(int)
+    #     df_prediction.to_parquet(self.prediction_parquet_path, index=False)
 
     @property
     def metrics_by_label(self) -> pd.DataFrame:

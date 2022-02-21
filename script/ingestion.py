@@ -3,13 +3,13 @@ from pathlib import Path
 
 import pandas as pd
 
-from lib import get_logger
+from training import get_logger, setup_logger
 
 PROJ_ROOT = Path(__file__).parents[1]
 sys.path.append(str(PROJ_ROOT))
-logger = get_logger(__name__)
+logger = setup_logger(__name__)
 
-from lib import DATA_DIR
+from training import DATA_DIR
 
 
 def download_csv_as_parquet(file_url: str, file_path: Path, **kwargs):

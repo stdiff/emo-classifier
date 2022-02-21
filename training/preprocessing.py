@@ -3,14 +3,15 @@ from typing import Optional
 import pandas as pd
 import altair as alt
 
-from lib import DATA_DIR, get_logger
-from lib.chart import correlation_heatmap
+from training import get_logger, LocalPaths
+from training.chart import correlation_heatmap
 from emo_classifier.emotion import load_emotions, vectorize_series_of_emotions
-from emo_classifier.text import Tokenizer
+from emo_classifier.classifiers.text import SpacyEnglishTokenizer
 
 
 LazyDataFrame = Optional[pd.DataFrame]
 logger = get_logger(__name__)
+local_paths = LocalPaths()
 
 
 def load_data(file_name: str, emotions: list[str]) -> pd.DataFrame:
@@ -18,7 +19,7 @@ def load_data(file_name: str, emotions: list[str]) -> pd.DataFrame:
     :param file_name: file name (not a path)
     :return: DataFrame[text, admiration, amusement, ..., neutral]. id is the index.
     """
-    df = pd.read_parquet(DATA_DIR / file_name)
+    df = pd.read_parquet(local_paths.dir_datasets / file_name)
     df = (
         pd.concat([df, vectorize_series_of_emotions(df["emotions"], emotions=emotions)], axis=1)
         .set_index("id")
@@ -29,6 +30,10 @@ def load_data(file_name: str, emotions: list[str]) -> pd.DataFrame:
 
 
 class Preprocessor:
+    """
+    Responsible for loading raw data and creating feature matrix (X) and the target (y).
+    """
+
     emotions = load_emotions()
 
     def __init__(self, with_lemmtatization: bool = False, min_df: Optional[int] = None):
@@ -39,7 +44,7 @@ class Preprocessor:
         self._df_dev: LazyDataFrame = None
         self._df_test: LazyDataFrame = None
         self._df_positive_rate: LazyDataFrame = None
-        self.tokenizer = Tokenizer(with_lemmatization=with_lemmtatization)
+        self.tokenizer = SpacyEnglishTokenizer(with_lemmatization=with_lemmtatization)
 
     @property
     def df_train(self) -> pd.DataFrame:

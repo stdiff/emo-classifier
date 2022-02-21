@@ -20,8 +20,14 @@ class Model(ABC):
 
     @classmethod
     @abstractmethod
-    def load_artifact_file(cls, fp: BinaryIO):
-        pass
+    def load_artifact_file(cls, fp: BinaryIO) -> "Model":
+        """
+        Given the file-like object of the model artifact, this method must recover the original Model instance.
+
+        :param fp: file-like object of the model artifact
+        :return: recovered Model instance
+        """
+        raise NotImplementedError
 
     @classmethod
     def load(cls) -> "Model":
@@ -30,11 +36,10 @@ class Model(ABC):
         print(f"LOADED: {type(model).__name__} instance")
         return model
 
-    @abstractmethod
-    def save_artifact_file(self, path: Path):
-        pass
-
     def _initialize_artifact_dir(self):
+        """
+        Initialize the artifact directory.
+        """
         if ARTIFACT_DIR.exists():
             for file in ARTIFACT_DIR.iterdir():
                 if file.is_dir():
@@ -45,6 +50,15 @@ class Model(ABC):
             ARTIFACT_DIR.mkdir()
         (ARTIFACT_DIR / "__init__.py").touch()
 
+    @abstractmethod
+    def save_artifact_file(self, path: Path):
+        """
+        Save the artifacts which we can recover the original instance from.
+
+        :param path: save location (provided by the method save())
+        """
+        raise NotImplementedError
+
     def save(self):
         self._initialize_artifact_dir()
         file_path = ARTIFACT_DIR / self.artifact_file_name
@@ -53,4 +67,4 @@ class Model(ABC):
 
     @abstractmethod
     def predict(self, comment: Comment) -> Prediction:
-        pass
+        raise NotImplementedError

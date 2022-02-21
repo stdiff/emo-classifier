@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from emo_classifier.metrics import JsonArtifact
-from lib import PROJ_ROOT
+from training import PROJ_ROOT
 
 dummy_name = "dummy_name"
 dummy_value = 1234

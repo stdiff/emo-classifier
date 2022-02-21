@@ -20,8 +20,8 @@ stages:
       - data/test.parquet
       - emo_classifier/artifact
     outs:
+      - emo_classifier/resources/dev_predictions.parquet
       - emo_classifier/resources/Thresholds.json
-      - emo_classifier/resources/test_predictions.parquet
       - notebook/error_analysis.html
     metrics:
       - emo_classifier/resources/DevMetrics.json
