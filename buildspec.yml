@@ -17,7 +17,7 @@ phases:
     pre_build:
         commands:
             - poetry run black --check */*.py */*/*.py
-            - dvc repro
+            - dvc status -q
             - poetry run pytest
             - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
     build:
