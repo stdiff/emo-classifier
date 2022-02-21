@@ -46,7 +46,7 @@ class LocalPaths:
         self.project_root = Path("/opt/ml/") if self.on_sagemaker else PROJ_ROOT
         self.code_root = (self.project_root / "code") if self.on_sagemaker else self.project_root
 
-        self.dir_datasets = self.project_root / ("input/datasets" if self.on_sagemaker else "data")
+        self.dir_datasets = self.project_root / ("input/data/datasets" if self.on_sagemaker else "data")
         """Directory where training/dev sets are stored."""
 
         self.dir_artifact = self.code_root / "emo_classifier/artifact"

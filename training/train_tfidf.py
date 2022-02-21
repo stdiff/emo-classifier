@@ -1,6 +1,7 @@
 """
 This script is the entry point of a SageMaker TrainingJob for TFIDF
 """
+import shutil
 from typing import Optional
 from datetime import datetime
 
@@ -9,10 +10,12 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.linear_model import LogisticRegression
 
-from training import TrainerBase
+from training import TrainerBase, LocalPaths
 from training.preprocessing import Preprocessor
 from emo_classifier.classifiers.tfidf import TfidfClassifier
 from emo_classifier.metrics import TrainingMetrics
+
+local_paths = LocalPaths()
 
 
 class TfidfTrainer(TrainerBase):
@@ -60,6 +63,14 @@ def start_training_tfidf_model():
     trainer = TfidfTrainer(min_df=43)
     trainer.fit(X_train, Y_train)
     trainer.save_model()
+
+    if local_paths.on_sagemaker:
+        for file in local_paths.dir_artifact.iterdir():
+            if not file.is_dir():
+                shutil.copy(file, local_paths.sm_model_dir)
+        for file in local_paths.dir_resources.iterdir():
+            if not file.is_dir():
+                shutil.copy(file, local_paths.sm_output_data_dir)
 
 
 if __name__ == "__main__":
