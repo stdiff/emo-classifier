@@ -25,6 +25,7 @@ phases:
             - poetry build
             - docker build --build-arg VERSION=$VERSION -t emo-classifier:$VERSION .
             - docker tag emo-classifier:$VERSION $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$VERSION
+            - poetry run pytest test/integration/test_api_server.py
     post_build:
         commands:
             - cp notebook/error_analysis.html dist/error_analysis-$VERSION.html
