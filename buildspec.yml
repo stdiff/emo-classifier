@@ -13,21 +13,25 @@ phases:
             - poetry env use system
             - poetry install
             - export VERSION=$(poetry version -s).$CODEBUILD_BUILD_NUMBER
-            - poetry version $VERSION
+            - poetry version $VERSION # this sets the version of the wheel file
     pre_build:
         commands:
             - poetry run black --check */*.py */*/*.py
-            - dvc status -q
-            - poetry run pytest
+            - dvc status -q # If the pipeline is not up to date, the build is failed.
+            - poetry run pytest # unit test
             - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
     build:
         commands:
             - poetry build
             - docker build --build-arg VERSION=$VERSION -t emo-classifier:$VERSION .
             - docker tag emo-classifier:$VERSION $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$VERSION
-            - poetry run pytest test/integration/test_api_server.py
+            - poetry run pytest test/integration/test_api_server.py # integration test
     post_build:
         commands:
+            - export POETRY_HTTP_BASIC_STDIFF_USERNAME=aws
+            - export POETRY_HTTP_BASIC_STDIFF_PASSWORD=$(aws codeartifact get-authorization-token --domain-owner $AWS_ACCOUNT_ID --domain stdiff --query 'authorizationToken' --output text)
+            - poetry config repositories.stdiff $(aws codeartifact get-repository-endpoint --domain-owner $AWS_ACCOUNT_ID --domain stdiff --repository stdiff --format pypi --query repositoryEndpoint --output text)
+            - poetry publish -r stdiff
             - cp notebook/error_analysis.html dist/error_analysis-$VERSION.html
             - mv dist $VERSION
             - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$VERSION
