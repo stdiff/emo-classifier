@@ -28,13 +28,13 @@ phases:
             - poetry run pytest test/integration/test_api_server.py # integration test
     post_build:
         commands:
+            - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$VERSION
             - export POETRY_HTTP_BASIC_STDIFF_USERNAME=aws
             - export POETRY_HTTP_BASIC_STDIFF_PASSWORD=$(aws codeartifact get-authorization-token --domain-owner $AWS_ACCOUNT_ID --domain stdiff --query 'authorizationToken' --output text)
             - poetry config repositories.stdiff $(aws codeartifact get-repository-endpoint --domain-owner $AWS_ACCOUNT_ID --domain stdiff --repository stdiff --format pypi --query repositoryEndpoint --output text)
             - poetry publish -r stdiff
             - cp notebook/error_analysis.html dist/error_analysis-$VERSION.html
             - mv dist $VERSION
-            - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$VERSION
 artifacts:
     files:
         - $VERSION/emo_classifier-*-py3-none-any.whl
