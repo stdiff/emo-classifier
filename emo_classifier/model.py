@@ -1,11 +1,16 @@
-from typing import BinaryIO
+from typing import BinaryIO, Union
 from importlib import resources
 from abc import ABC, abstractmethod
 from pathlib import Path
 from shutil import rmtree
 
-from emo_classifier.api import Comment, Prediction
+import numpy as np
+import pandas as pd
+
 from emo_classifier import ARTIFACT_DIR
+from emo_classifier.api import Comment, Prediction
+from emo_classifier.emotion import load_emotions
+from emo_classifier.metrics import Thresholds
 
 
 class Model(ABC):
@@ -17,6 +22,7 @@ class Model(ABC):
     """
 
     artifact_file_name = "model.model"
+    emotions: list[str] = load_emotions()
 
     @classmethod
     @abstractmethod
@@ -65,6 +71,30 @@ class Model(ABC):
         self.save_artifact_file(file_path)
         print("SAVED:", file_path.absolute())
 
+    @property
+    @abstractmethod
+    def thresholds(self) -> Thresholds:
+        raise NotImplementedError
+
+    @thresholds.setter
+    @abstractmethod
+    def thresholds(self, thresholds: Thresholds):
+        raise NotImplementedError
+
     @abstractmethod
     def predict(self, comment: Comment) -> Prediction:
+        """
+        Makes a prediction for a single Comment instance. This is the main functionality of the API.
+
+        :param comment: Comment instance
+        :return: Prediction instance
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def predict_proba(self, X: Union[pd.Series, np.ndarray]) -> np.ndarray:
+        """
+        :param X: Series of texts
+        :return: array of prediction of shape (#instances, #emotions)
+        """
         raise NotImplementedError

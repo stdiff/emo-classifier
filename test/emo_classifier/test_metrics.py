@@ -1,13 +1,21 @@
 from dataclasses import dataclass
+from pathlib import Path
+
+import pytest
 
 from emo_classifier.metrics import JsonArtifact
-from training import PROJ_ROOT
+from training import LocalPaths
 
 dummy_name = "dummy_name"
 dummy_value = 1234
-file_path = PROJ_ROOT / "emo_classifier/resources/DummyJsonArtifact.json"
 
-if file_path.exists():
+
+@pytest.fixture(scope="module")
+def file_path():
+    local_paths = LocalPaths()
+    file_path = local_paths.project_root / "emo_classifier/resources/DummyJsonArtifact.json"
+    file_path.unlink(missing_ok=True)
+    yield file_path
     file_path.unlink(missing_ok=True)
 
 
@@ -17,7 +25,7 @@ class DummyJsonArtifact(JsonArtifact):
     value: int
 
 
-def test_save_and_load():
+def test_save_and_load(file_path: Path):
     dummy_json_artifact = DummyJsonArtifact(dummy_name, dummy_value)
     dummy_json_artifact.save()
     assert file_path.exists()
@@ -25,5 +33,3 @@ def test_save_and_load():
     loaded_artifact = DummyJsonArtifact.load()
     assert isinstance(loaded_artifact, DummyJsonArtifact)
     assert dummy_json_artifact == loaded_artifact
-
-    file_path.unlink(missing_ok=True)

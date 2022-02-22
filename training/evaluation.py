@@ -172,7 +172,7 @@ class PredictionOnDevSetEvaluator:
             )
             .merge(self.thresholds().as_series().reset_index())
         )
-        df_prediction["prediction"] = (df_prediction["probability"] >= df_prediction["threshold"]).astype(int)
+        df_prediction["prediction"] = (df_prediction["probability"] > df_prediction["threshold"]).astype(int)
         df_prediction.to_parquet(self.prediction_parquet_path, index=False)
 
     def save_thresholds_metrics_and_predictions(self):
