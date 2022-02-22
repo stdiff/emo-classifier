@@ -20,11 +20,11 @@ torchtext = {version = "~0.10.0", python = "~3.9", platform = "linux"}
 fastapi = "0.70.1"
 uvicorn = {extras = ["standard"], version = "~0.15.0"}
 
-## libraries for the training pipeline
+## libraries for the training pipeline and tests
 [tool.poetry.dev-dependencies]
 jupyterlab = "~3.0"
 jupyterlab-code-formatter = "~1.4"
-black = "^21.6b0"
+black = "22.1.0"
 isort = "^5.9.1"
 jupytext = "~1.11"
 jupyterlab-git = "~0.30"
