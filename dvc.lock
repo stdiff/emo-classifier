@@ -20,9 +20,9 @@ stages:
       size: 2701174
     outs:
     - path: emo_classifier/artifact/
-      md5: 3669bb41498d9a18cbeb704d379be63f.dir
-      size: 35299025
-      nfiles: 2
+      md5: 3eaf1a917531d468fd7941cbd5145904.dir
+      size: 35299201
+      nfiles: 3
     - path: emo_classifier/resources/TrainingMetrics.json
       md5: 06b91464e882267efc917d539040e52d
       size: 238
