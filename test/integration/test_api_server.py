@@ -1,4 +1,4 @@
-import time
+import time, os
 
 import pytest
 import docker
@@ -6,13 +6,16 @@ from docker.models.containers import Container
 import requests
 
 repository = "050266116122.dkr.ecr.eu-central-1.amazonaws.com/emo-classifier"
-tag = "0.46"
-image_uri = f"{repository}:{tag}"
-host, port = "0.0.0.0", 8000
+host, port = "127.0.0.1", 8000
 
 
 @pytest.fixture(scope="module")
 def api_server():
+    version = os.getenv("VERSION")
+    if version is None:
+        raise RuntimeError(f"No version (tag of the image) is given.")
+    image_uri = f"{repository}:{version}"
+
     docker_client = docker.from_env()
     api_container: Container = docker_client.containers.run(image_uri, ports={port: port}, detach=True)
 
@@ -46,4 +49,3 @@ def test_send_a_request(api_server):
 
     actual1 = r.json()
     assert expected1 == actual1
-
