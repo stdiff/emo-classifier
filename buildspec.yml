@@ -11,7 +11,7 @@ phases:
             - curl -sSL https://install.python-poetry.org | python3 - --version 1.1.11
             - export PATH=/root/.local/bin:$PATH
             - poetry env use system
-            - poetry install --no-dev
+            - poetry install
             - export VERSION=$(poetry version -s).$CODEBUILD_BUILD_NUMBER
             - poetry version $VERSION
     pre_build:
