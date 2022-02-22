@@ -2,22 +2,24 @@ import time, os
 
 import pytest
 import docker
-from docker.models.containers import Container
 import requests
 
-repository = "050266116122.dkr.ecr.eu-central-1.amazonaws.com/emo-classifier"
 host, port = "127.0.0.1", 8000
 
 
 @pytest.fixture(scope="module")
 def api_server():
-    version = os.getenv("VERSION")
-    if version is None:
-        raise RuntimeError(f"No version (tag of the image) is given.")
+    aws_region = os.environ["AWS_DEFAULT_REGION"]
+    aws_account_id = os.environ["AWS_ACCOUNT_ID"]
+    repository = f"{aws_account_id}.dkr.ecr.{aws_region}.amazonaws.com/emo-classifier"
+
+    version = os.environ["VERSION"]
     image_uri = f"{repository}:{version}"
 
     docker_client = docker.from_env()
-    api_container: Container = docker_client.containers.run(image_uri, ports={port: port}, detach=True)
+    api_container: docker.models.containers.Container = docker_client.containers.run(
+        image_uri, ports={port: port}, detach=True
+    )
 
     successfully_connected = False
     for _ in range(6):
