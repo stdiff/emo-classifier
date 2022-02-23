@@ -1,6 +1,7 @@
 import logging
 
-from training import setup_logger, LocalPaths
+from emo_classifier import setup_logger
+from training import LocalPaths
 from training.train_tfidf import start_training_tfidf_model
 from training.utils_for_sagemaker import InstanceType, generate_tag_list, start_sagemaker_training_job
 

@@ -3,14 +3,14 @@ from typing import Optional
 import pandas as pd
 import altair as alt
 
-from training import get_logger, LocalPaths
-from training.chart import correlation_heatmap
+from emo_classifier import setup_logger
 from emo_classifier.emotion import load_emotions, vectorize_series_of_emotions
 from emo_classifier.classifiers.text import SpacyEnglishTokenizer
-
+from training import LocalPaths
+from training.chart import correlation_heatmap
 
 LazyDataFrame = Optional[pd.DataFrame]
-logger = get_logger(__name__)
+logger = setup_logger(__name__)
 local_paths = LocalPaths()
 
 

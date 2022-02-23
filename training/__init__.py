@@ -1,37 +1,14 @@
 from typing import Optional
 from pathlib import Path
 from abc import ABC, abstractmethod
-import logging
-import sys
 import os
 
+from emo_classifier import setup_logger
 from emo_classifier.metrics import TrainingMetrics
 from emo_classifier.model import Model
 
-PROJ_ROOT = Path(__file__).parents[1]
-DATA_DIR = PROJ_ROOT / "data"
-
-logging.basicConfig(
-    stream=sys.stdout,
-    level=logging.DEBUG,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
-
-
-def get_logger(name: str) -> logging.Logger:
-    return logging.getLogger(name)
-
-
-def setup_logger(name: str, log_file: Optional[Path] = None) -> logging.Logger:
-    logger = logging.getLogger(name)
-    logger.handlers.clear()
-    logger.propagate = False
-    handler = logging.StreamHandler(sys.stdout) if log_file is None else logging.FileHandler(str(log_file))
-    format = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
-    handler.setFormatter(format)
-    logger.addHandler(handler)
-    return logger
+_PROJ_ROOT = Path(__file__).parents[1]
+_DATA_DIR = _PROJ_ROOT / "data"
 
 
 class LocalPaths:
@@ -43,7 +20,7 @@ class LocalPaths:
 
     def __init__(self):
         self.on_sagemaker = True if os.getenv("SM_MODEL_DIR") else False
-        self.project_root = Path("/opt/ml/") if self.on_sagemaker else PROJ_ROOT
+        self.project_root = Path("/opt/ml/") if self.on_sagemaker else _PROJ_ROOT
         self.code_root = (self.project_root / "code") if self.on_sagemaker else self.project_root
 
         self.dir_datasets = self.project_root / ("input/data/datasets" if self.on_sagemaker else "data")

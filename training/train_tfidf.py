@@ -1,7 +1,6 @@
 """
 This script is the entry point of a SageMaker TrainingJob for TFIDF
 """
-import shutil
 from typing import Optional
 from datetime import datetime
 

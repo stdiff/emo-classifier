@@ -12,9 +12,10 @@ import json
 from sagemaker.s3 import S3Uploader, S3Downloader
 from sagemaker.estimator import Estimator
 
-from training import get_logger, PROJ_ROOT, LocalPaths
+from emo_classifier import setup_logger
+from training import LocalPaths
 
-logger = get_logger(__name__)
+logger = setup_logger(__name__)
 region = "eu-central-1"
 role = "AmazonSageMaker-ExecutionRole-20210315T231867"
 project_root_s3 = "s3://stdiff/sagemaker/emo-classifier"
@@ -87,12 +88,14 @@ def archive_training_modules(tar_ball_path: Path):
             pkg_dir / "resources/emotions.txt",
             pkg_dir / "resources/__init__.py",
         ]
-        files_to_add.extend([file for file in (PROJ_ROOT / "training").iterdir() if file.name.endswith("py")])
+        files_to_add.extend(
+            [file for file in (local_paths.project_root / "training").iterdir() if file.name.endswith("py")]
+        )
         files_to_add.extend([file for file in pkg_dir.iterdir() if file.name.endswith("py")])
         files_to_add.extend([file for file in (pkg_dir / "classifiers").iterdir() if file.name.endswith("py")])
 
         for file in files_to_add:
-            tar_file.add(str(file), file.relative_to(PROJ_ROOT))
+            tar_file.add(str(file), file.relative_to(local_paths.project_root))
 
 
 def upload_sourcedir() -> str:
