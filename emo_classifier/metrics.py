@@ -1,4 +1,3 @@
-from typing import Union
 from dataclasses import dataclass, asdict
 from abc import ABC
 from importlib import resources
@@ -76,20 +75,26 @@ class Thresholds(JsonArtifact):
 
 @dataclass
 class TrainingMetrics(JsonArtifact):
-    model_class: str
-    model_name: str
-    best_params: dict[str, Union[str, float, int]]
-    validation_score: float
-    training_score: float
-    training_timestamp: str  ## ISO format with timezone
+    log_loss: float
+    auc_roc: dict[str, float]
+    best_params: str
+    timestamp: str  ## ISO format with timezone
 
 
 @dataclass
 class DevMetrics(JsonArtifact):
-    macro_f1_score: float
-    scores: dict[str, dict[str, float]]  # label -> score name -> score
+    log_loss: float
+    auc_roc: dict[str, float]
+    f1_score: dict[str, float]
+    precision: dict[str, float]
+    recall: dict[str, float]
+    timestamp: str  ## ISO format with timezone
 
 
 @dataclass
 class TestMetrics(JsonArtifact):
-    macro_f1_score: float
+    auc_roc: dict[str, float]
+    f1_score: dict[str, float]
+    precision: dict[str, float]
+    recall: dict[str, float]
+    timestamp: str  ## ISO format with timezone

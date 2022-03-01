@@ -18,12 +18,20 @@ def train_tfidf_model_on_sagemaker():
     )
 
 
+def train_embedding_bag_model_on_local():
+    from training.train_embedding_bag import start_train_embedding_bag_model
+
+    start_train_embedding_bag_model(max_epoch=50)
+
+
 def start():
     """
     This function can be executed by command "poetry run train"
     """
-    start_training_tfidf_model()
+    # start_training_tfidf_model()
+    # train_tfidf_model_on_sagemaker()
+    train_embedding_bag_model_on_local()
 
 
 if __name__ == "__main__":
-    train_tfidf_model_on_sagemaker()
+    start()

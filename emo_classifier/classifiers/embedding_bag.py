@@ -1,0 +1,133 @@
+from pathlib import Path
+from typing import Optional, Iterator, BinaryIO
+
+import numpy as np
+import pandas as pd
+from sklearn.metrics import roc_auc_score
+
+import torch
+from torch import Tensor, nn
+from torch.nn.utils.rnn import pad_sequence
+from torchtext.vocab import Vocab
+import pytorch_lightning as pl
+
+from emo_classifier.api import Comment, Prediction
+from emo_classifier.metrics import Thresholds
+from emo_classifier.model import Model
+from emo_classifier.emotion import load_emotions
+from emo_classifier.classifiers.text import SpacyEnglishTokenizer
+
+
+with_lemmatization = False
+remove_stopwords = True
+padding_token = "<pad>"
+unknown_token = "<unk>"
+
+
+class EmbeddingBagModule(pl.LightningModule):
+    def __init__(
+        self,
+        vocab: Vocab,
+        embedding_dim: int = 64,
+    ):
+        """
+        The Vocab instance is not used here, but we can put it here so that we can also put it in a
+        single PyTorch model file.
+
+        :param vocab: fitted Vocab instance
+        :param embedding_dim: dimension of the embedding space
+        """
+        super().__init__()
+        self.vocab = vocab
+        self.vocab_size = len(self.vocab)
+        self.embedding_dim = embedding_dim
+        self.n_labels = len(load_emotions())
+
+        self.embedding = nn.Embedding(num_embeddings=self.vocab_size, embedding_dim=self.embedding_dim)
+        self.linear = nn.Linear(in_features=self.embedding_dim, out_features=self.n_labels, bias=False)
+
+        self.loss = nn.BCEWithLogitsLoss(reduction="sum")
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+
+        :param x: Tensor of shape (batch size, text length)
+        :return: Tensor of shape (batch size, # labels)
+        """
+        x = self.embedding(x).mean(dim=1)
+        return self.linear(x)
+
+    def training_step(self, batch, batch_idx) -> torch.Tensor:
+        X, Y = batch
+        y_hat = self(X)
+        loss = self.loss(Y, y_hat)
+        self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        return loss
+
+    def validation_step(self, batch, batch_idx) -> tuple[torch.Tensor, torch.Tensor]:
+        X, Y_true = batch
+        Y_prob = self(X)
+        return Y_true, Y_prob
+
+    def validation_epoch_end(self, outputs: list[tuple[torch.Tensor, torch.Tensor]]):
+        Y_true = torch.vstack([Y_true for Y_true, _ in outputs])
+        Y_hat = torch.vstack([Y_hat for _, Y_hat in outputs])
+        loss = self.loss(Y_true, Y_hat)
+        self.log("val_loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        ## TODO: return more useful metrics such as average AUC of ROCs
+
+    def predict_step(self, batch, batch_idx: int, dataloader_idx: Optional[int] = None) -> tuple[Tensor, Tensor]:
+        X, Y_true = batch
+        Y_Prob = torch.softmax(self(X), dim=1)
+        return Y_true, Y_Prob
+
+    def configure_optimizers(self):
+        return torch.optim.Adam(self.parameters(), lr=1e-3)
+
+
+class EmbeddingBagClassifier(Model):
+    artifact_file_name = "embedding_bag.pt"
+
+    def __init__(self, embedding_bag_model: EmbeddingBagModule):
+        self.tokenizer = SpacyEnglishTokenizer(with_lemmatization, remove_stopwords)
+        self.vocab = embedding_bag_model.vocab
+        self.model = embedding_bag_model
+        self.padding_index = self.vocab[padding_token]
+
+        self._thresholds: Optional[Thresholds] = None
+        self._s_thresholds: Optional[pd.Series] = None
+        self._dict_thresholds: Optional[dict[str, float]] = None
+
+    def texts2tensor(self, texts: Iterator[str]) -> torch.Tensor:
+        sequences_of_indices = [torch.tensor(self.vocab(self.tokenizer(text))) for text in texts]
+        return pad_sequence(sequences_of_indices, batch_first=True, padding_value=self.padding_index)
+
+    @classmethod
+    def load_artifact_file(cls, fp: BinaryIO) -> "EmbeddingBagClassifier":
+        model = torch.load(fp)
+        return cls(model)
+
+    def save_artifact_file(self, path: Path):
+        torch.save(self.model, path)
+
+    @property
+    def thresholds(self) -> Optional[Thresholds]:
+        return self._thresholds
+
+    @thresholds.setter
+    def thresholds(self, thresholds: Thresholds):
+        self._thresholds = thresholds
+        self._s_thresholds = thresholds.as_series()[self.emotions]
+        self._dict_thresholds = thresholds.as_dict()
+
+    def predict(self, comment: Comment) -> Prediction:
+        y = self.predict_proba([comment.text])[0, :]
+        emotions = [emotion for i, emotion in enumerate(self.emotions) if y[i] > self._dict_thresholds.get(emotion)]
+        return Prediction(id=comment.id, labels=emotions)
+
+    def predict_proba(self, texts) -> np.ndarray:
+        X = self.texts2tensor(texts)
+        self.model.eval()
+        with torch.no_grad():
+            y = torch.softmax(self.model(X), dim=1)
+        return y.detach().numpy()

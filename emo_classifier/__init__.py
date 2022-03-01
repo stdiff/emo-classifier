@@ -13,6 +13,7 @@ def setup_logger(name: str, log_file: Optional[Path] = None) -> logging.Logger:
     logger.handlers.clear()
     logger.propagate = False
     handler = logging.StreamHandler(sys.stdout) if log_file is None else logging.FileHandler(str(log_file))
+    handler.setLevel(logging.INFO)
     format = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
     handler.setFormatter(format)
     logger.addHandler(handler)

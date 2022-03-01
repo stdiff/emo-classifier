@@ -82,6 +82,13 @@ class Model(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def predict_proba(self, texts) -> np.ndarray:
+        """
+        :param texts: Series/Iterator of texts
+        :return: array of prediction of shape (#instances, #emotions)
+        """
+        raise NotImplementedError
+
     def predict(self, comment: Comment) -> Prediction:
         """
         Makes a prediction for a single Comment instance. This is the main functionality of the API.
@@ -89,12 +96,8 @@ class Model(ABC):
         :param comment: Comment instance
         :return: Prediction instance
         """
-        raise NotImplementedError
 
-    @abstractmethod
-    def predict_proba(self, X: Union[pd.Series, np.ndarray]) -> np.ndarray:
-        """
-        :param X: Series of texts
-        :return: array of prediction of shape (#instances, #emotions)
-        """
-        raise NotImplementedError
+        X = np.array([comment.text])
+        y = self.predict_proba(X)[0, :]
+        emotions = [emotion for i, emotion in enumerate(self.emotions) if y[i] > self._dict_thresholds.get(emotion)]
+        return Prediction(id=comment.id, labels=emotions)
