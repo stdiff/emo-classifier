@@ -43,9 +43,9 @@ class EmbeddingBagTrainer(TrainerBase):
         data_module.setup("fit")
         model = EmbeddingBagModule(data_module.vocab, embedding_dim=self.embedding_dim)
 
-        early_stopping = EarlyStopping(monitor="val_loss", patience=self.patience)
+        early_stopping = EarlyStopping(monitor="val_roc_auc", patience=self.patience)
         model_checkpoint = ModelCheckpoint(
-            monitor="val_loss",
+            monitor="val_roc_auc",
             dirpath="tmp_checkpoint",
             filename="emo-classifier-{epoch:02d}-{val_loss:.2f}",
             save_top_k=1,
@@ -58,8 +58,8 @@ class EmbeddingBagTrainer(TrainerBase):
             callbacks=[early_stopping, model_checkpoint],
             logger=[simple_logger, tensorboard_logger],
             deterministic=True,
-            accelerator="cpu",
-            devices=4,
+            # accelerator="cpu",
+            # devices=4,
         )
         trainer.fit(model, data_module)
 
@@ -77,13 +77,13 @@ class EmbeddingBagTrainer(TrainerBase):
         )
 
 
-def start_train_embedding_bag_model(max_epoch: int = 3):
+def start_train_embedding_bag_model(embedding_dim: int = 64, max_epoch: int = 3, patience: int = 3):
     data_module = GoEmotionsDataModule(with_lemmatization=with_lemmatization, remove_stopwords=remove_stopwords)
-    trainer = EmbeddingBagTrainer(embedding_dim=4, max_epoch=max_epoch, patience=5)
+    trainer = EmbeddingBagTrainer(embedding_dim=embedding_dim, max_epoch=max_epoch, patience=patience)
     trainer.fit(data_module)
     trainer.save_model()
     copy_artifacts_for_outputs_if_on_sagemaker()
 
 
 if __name__ == "__main__":
-    start_train_embedding_bag_model(max_epoch=100)
+    start_train_embedding_bag_model(max_epoch=20, patience=5)

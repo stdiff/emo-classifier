@@ -3,7 +3,7 @@ from typing import Optional, Iterator, BinaryIO
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import roc_auc_score
+from training.evaluation import stats_roc_auc
 
 import torch
 from torch import Tensor, nn
@@ -73,8 +73,9 @@ class EmbeddingBagModule(pl.LightningModule):
         Y_true = torch.vstack([Y_true for Y_true, _ in outputs])
         Y_hat = torch.vstack([Y_hat for _, Y_hat in outputs])
         loss = self.loss(Y_true, Y_hat)
+        roc_stats = stats_roc_auc(Y_true.numpy(), Y_hat.numpy())
         self.log("val_loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        ## TODO: return more useful metrics such as average AUC of ROCs
+        self.log("val_roc_auc", roc_stats.avg, on_step=False, on_epoch=True, prog_bar=True, logger=True)
 
     def predict_step(self, batch, batch_idx: int, dataloader_idx: Optional[int] = None) -> tuple[Tensor, Tensor]:
         X, Y_true = batch
