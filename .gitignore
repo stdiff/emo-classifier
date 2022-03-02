@@ -14,3 +14,4 @@ tmp/
 
 ## logging
 training/logs/*
+emo_classifier/resources/training

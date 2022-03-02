@@ -30,10 +30,14 @@ class InstanceType(str, Enum):
     """
 
     local = "local"
-    ml_m5_large = "ml.m5.large"  ## vCPU = 2, RAM =  8GB, no GPU, $0.138 per hour
-    ml_m5_xlarge = "ml.m5.xlarge"  # vCPU = 4, RAM = 16 GiB, no GPU, $0.276 per hour
-    ml_g4dn_xlarge = "ml.g4dn.xlarge"  ## vCPU = 4, RAM = 16GiB, GPU enabled, $0.921 per hour
-    ml_p3_2xlarge = "ml.p3.2xlarge"  ## vCPU = 8, RAM = 61GiB, GPU enabled, $4.779 per hour
+    ml_m5_large = "ml.m5.large"
+    """vCPU = 2, RAM =  8GB, no GPU, $0.138 per hour"""
+    ml_m5_xlarge = "ml.m5.xlarge"
+    """vCPU = 4, RAM = 16 GiB, no GPU, $0.276 per hour"""
+    ml_g4dn_xlarge = "ml.g4dn.xlarge"
+    """vCPU = 4, RAM = 16GiB, GPU enabled, $0.921 per hour"""
+    ml_p3_2xlarge = "ml.p3.2xlarge"
+    """vCPU = 8, RAM = 61GiB, GPU enabled, $4.779 per hour"""
 
 
 def generate_tag_list(**kwargs) -> list[dict[str, str]]:
@@ -165,7 +169,6 @@ def download_sagemaker_outputs_to_local(model_tarball_s3_path: str):
             raise FileNotFoundError(f"Download failed: S3 URI = {output_tarball_s3_path}")
 
         with tarfile.open(output_tarball_local_path, "r:gz") as output_tarball:
-            ## name of the
             output_tarball.extractall(local_paths.dir_resources)
             logger.info(
                 f"The archived files in {output_tarball_local_path.name} is saved under {local_paths.dir_resources}"
@@ -181,9 +184,11 @@ def copy_artifacts_for_outputs_if_on_sagemaker():
         for file in local_paths.dir_artifact.iterdir():
             if not file.is_dir():
                 shutil.copy(file, local_paths.sm_model_dir)
+                logger.info(f"COPY: {file} -> {local_paths.sm_model_dir}")
         for file in local_paths.dir_resources.iterdir():
-            if not file.is_dir() and file.name != "success":
-                shutil.copy(file, local_paths.sm_output_data_dir.parent)
+            if not file.is_dir():
+                shutil.copy(file, local_paths.sm_output_data_dir)
+                logger.info(f"COPY: {file} -> {local_paths.sm_output_data_dir}")
 
 
 def start_sagemaker_training_job(
