@@ -1,5 +1,6 @@
 from typing import Optional
 from pathlib import Path
+from shutil import rmtree
 from abc import ABC, abstractmethod
 import os
 
@@ -39,11 +40,15 @@ class LocalPaths:
         """SageMakers output dir ($SM_OUTPUT_DATA_DIR). The files under this directory are archived in output.tar.gz"""
 
 
+local_paths = LocalPaths()
+
+
 class TrainerBase(ABC):
     def __init__(self, log_file: Optional[Path] = None, classifier: Optional[Model] = None):
         self.logger = setup_logger(type(self).__name__, log_file=log_file)
         self.classifier = classifier
         self.training_metrics: Optional[TrainingMetrics] = None
+        self._initialize_artifact_dir()
 
     @abstractmethod
     def fit(self, *args, **kwargs):
@@ -52,3 +57,17 @@ class TrainerBase(ABC):
     def save_model(self):
         self.classifier.save()
         self.training_metrics.save()
+
+    def _initialize_artifact_dir(self):
+        """
+        Initialize the artifact directory.
+        """
+        if local_paths.dir_artifact.exists():
+            for file in local_paths.dir_artifact.iterdir():
+                if file.is_dir():
+                    rmtree(file)
+                else:
+                    file.unlink()
+        else:
+            local_paths.dir_artifact.mkdir()
+        (local_paths.dir_artifact / "__init__.py").touch()

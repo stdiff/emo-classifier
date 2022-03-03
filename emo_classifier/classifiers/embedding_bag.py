@@ -1,4 +1,6 @@
+import json
 from pathlib import Path
+from importlib import resources
 from typing import Optional, Iterator, BinaryIO
 
 import numpy as np
@@ -11,11 +13,12 @@ from torch.nn.utils.rnn import pad_sequence
 from torchtext.vocab import Vocab
 import pytorch_lightning as pl
 
+
 from emo_classifier.api import Comment, Prediction
 from emo_classifier.metrics import Thresholds
 from emo_classifier.model import Model
 from emo_classifier.emotion import load_emotions
-from emo_classifier.classifiers.text import SpacyEnglishTokenizer
+from emo_classifier.classifiers.text import SpacyEnglishTokenizer, load_vocab
 
 
 with_lemmatization = False
@@ -25,21 +28,9 @@ unknown_token = "<unk>"
 
 
 class EmbeddingBagModule(pl.LightningModule):
-    def __init__(
-        self,
-        vocab: Vocab,
-        embedding_dim: int = 64,
-    ):
-        """
-        The Vocab instance is not used here, but we can put it here so that we can also put it in a
-        single PyTorch model file.
-
-        :param vocab: fitted Vocab instance
-        :param embedding_dim: dimension of the embedding space
-        """
+    def __init__(self, vocab_size: int, embedding_dim: int = 64):
         super().__init__()
-        self.vocab = vocab
-        self.vocab_size = len(self.vocab)
+        self.vocab_size = vocab_size
         self.embedding_dim = embedding_dim
         self.n_labels = len(load_emotions())
 
@@ -50,7 +41,6 @@ class EmbeddingBagModule(pl.LightningModule):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-
         :param x: Tensor of shape (batch size, text length)
         :return: Tensor of shape (batch size, # labels)
         """
@@ -89,9 +79,10 @@ class EmbeddingBagModule(pl.LightningModule):
 class EmbeddingBagClassifier(Model):
     artifact_file_name = "embedding_bag.pt"
 
-    def __init__(self, embedding_bag_model: EmbeddingBagModule):
+    def __init__(self, embedding_bag_model: EmbeddingBagModule, vocab: Optional[Vocab] = None):
         self.tokenizer = SpacyEnglishTokenizer(with_lemmatization, remove_stopwords)
-        self.vocab = embedding_bag_model.vocab
+        self.vocab = vocab or load_vocab()
+        self.vocab.set_default_index(self.vocab[unknown_token])
         self.model = embedding_bag_model
         self.padding_index = self.vocab[padding_token]
 
@@ -105,11 +96,19 @@ class EmbeddingBagClassifier(Model):
 
     @classmethod
     def load_artifact_file(cls, fp: BinaryIO) -> "EmbeddingBagClassifier":
-        model = torch.load(fp)
+        with resources.open_binary("emo_classifier.artifact", "hyperparameter.json") as fo:
+            hyperparameter = json.load(fo)
+
+        model = EmbeddingBagModule(**hyperparameter)
+        model.load_state_dict(torch.load(fp))
         return cls(model)
 
     def save_artifact_file(self, path: Path):
-        torch.save(self.model, path)
+        hyperparameter_json_path = path.parent / "hyperparameter.json"
+        hyperparameter = {"vocab_size": self.model.vocab_size, "embedding_dim": self.model.embedding_dim}
+        with hyperparameter_json_path.open("w") as fo:
+            json.dump(hyperparameter, fo)
+        torch.save(self.model.state_dict(), path)
 
     @property
     def thresholds(self) -> Optional[Thresholds]:
@@ -132,3 +131,13 @@ class EmbeddingBagClassifier(Model):
         with torch.no_grad():
             y = torch.softmax(self.model(X), dim=1)
         return y.detach().numpy()
+
+    def predict_proba_in_batch(self, texts, batch_size: int = 256):
+        from itertools import islice
+
+        text_iterator = iter(texts)
+        ys = []
+        while batch := list(islice(text_iterator, batch_size)):
+            ys.append(self.predict_proba(batch))
+
+        return np.vstack(ys)
