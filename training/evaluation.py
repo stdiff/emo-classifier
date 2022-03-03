@@ -1,9 +1,11 @@
+from datetime import datetime
 from typing import Union, Optional
+from dataclasses import dataclass, asdict
 
 import numpy as np
 import pandas as pd
 import altair as alt
-from sklearn.metrics import precision_recall_curve, precision_recall_fscore_support
+from sklearn.metrics import precision_recall_curve, precision_recall_fscore_support, roc_auc_score
 
 from emo_classifier.metrics import Thresholds, DevMetrics, TestMetrics
 from training import LocalPaths
@@ -29,6 +31,44 @@ def precision_recall_dataframe(y_true: pd.Series, y_prob: pd.Series) -> pd.DataF
     df_metrics = pd.DataFrame({"threshold": threshold, "precision": precision[:-1], "recall": recall[:-1]})
     df_metrics["f1_score"] = f1_score(df_metrics["precision"], df_metrics["recall"])
     return df_metrics
+
+
+@dataclass
+class SimpleStats:
+    avg: float
+    min: float
+    max: float
+
+    @classmethod
+    def from_array(cls, array: Union[np.ndarray, list[float]]) -> "SimpleStats":
+        return cls(avg=float(np.mean(array)), min=float(np.min(array)), max=float(np.max(array)))
+
+    def as_dict(self) -> dict[str, float]:
+        return asdict(self)
+
+
+def stats_roc_auc(y_true: np.ndarray, y_score: np.ndarray) -> SimpleStats:
+    """
+    Compute average/max/min of areas under the roc curves
+
+    :param y_true: binary matrix of shape (# instance, # label)
+    :param y_score: score matrix of shape (# instance, # label)
+    :return:
+    """
+    if y_true.shape != y_score.shape:
+        raise ValueError(f"The shapes do not agree. ({y_true.shape} != {y_score.shape})")
+
+    areas = []
+    p = y_true.shape[1]
+    for j in range(p):
+        try:
+            ## The dev set contains a label which is always negative. In this case AUC = 0.
+            area = roc_auc_score(y_true[:, j], y_score[:, j])
+        except ValueError:
+            area = 0
+        areas.append(area)
+
+    return SimpleStats.from_array(areas)
 
 
 class PredictionOnDevSetEvaluator:
@@ -150,7 +190,21 @@ class PredictionOnDevSetEvaluator:
         for label, metrics in self.best_thresholds.set_index("label").iterrows():
             scores[label] = metrics.to_dict()
 
-        dev_metrics = DevMetrics(macro_f1_score=float(self.macro_f1_score()), scores=scores)
+        from sklearn.metrics import log_loss
+        from datetime import datetime
+
+        metric_stats = {}
+        for metric in ["f1_score"]:
+            metric_stats[metric] = {"avg"}
+
+        dev_metrics = DevMetrics(
+            log_loss=log_loss(self.Y_true.values, self.Y_prob.values),
+            auc_roc=stats_roc_auc(self.Y_true.values, self.Y_prob.values).as_dict(),
+            f1_score=SimpleStats.from_array(self.best_thresholds["f1_score"]).as_dict(),
+            precision=SimpleStats.from_array(self.best_thresholds["precision"]).as_dict(),
+            recall=SimpleStats.from_array(self.best_thresholds["recall"]).as_dict(),
+            timestamp=datetime.now().astimezone().isoformat(),
+        )
         dev_metrics.save()
 
     def save_prediction(self):
@@ -203,6 +257,8 @@ class PredictionOnTestSetEvaluator:
     @property
     def metrics_by_label(self) -> pd.DataFrame:
         """
+        label -> (threshold, precision, recall, f1_score)
+
         :return: DataFrame[label, threshold, precision, recall, f1_score]
         """
         if self._metrics_by_label is None:
@@ -236,5 +292,11 @@ class PredictionOnTestSetEvaluator:
         return self.metrics_by_label["f1_score"].mean()
 
     def save_test_metrics(self):
-        test_metrics = TestMetrics(macro_f1_score=self.macro_f1_score())
+        test_metrics = TestMetrics(
+            auc_roc=stats_roc_auc(self.Y_true.values, self.Y_prob.values).as_dict(),
+            f1_score=SimpleStats.from_array(self.metrics_by_label["f1_score"]).as_dict(),
+            precision=SimpleStats.from_array(self.metrics_by_label["precision"]).as_dict(),
+            recall=SimpleStats.from_array(self.metrics_by_label["recall"]).as_dict(),
+            timestamp=datetime.now().astimezone().isoformat(),
+        )
         test_metrics.save()

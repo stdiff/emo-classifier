@@ -1,37 +1,15 @@
 from typing import Optional
 from pathlib import Path
+from shutil import rmtree
 from abc import ABC, abstractmethod
-import logging
-import sys
 import os
 
+from emo_classifier import setup_logger
 from emo_classifier.metrics import TrainingMetrics
 from emo_classifier.model import Model
 
-PROJ_ROOT = Path(__file__).parents[1]
-DATA_DIR = PROJ_ROOT / "data"
-
-logging.basicConfig(
-    stream=sys.stdout,
-    level=logging.DEBUG,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
-
-
-def get_logger(name: str) -> logging.Logger:
-    return logging.getLogger(name)
-
-
-def setup_logger(name: str, log_file: Optional[Path] = None) -> logging.Logger:
-    logger = logging.getLogger(name)
-    logger.handlers.clear()
-    logger.propagate = False
-    handler = logging.StreamHandler(sys.stdout) if log_file is None else logging.FileHandler(str(log_file))
-    format = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
-    handler.setFormatter(format)
-    logger.addHandler(handler)
-    return logger
+_PROJ_ROOT = Path(__file__).parents[1]
+_DATA_DIR = _PROJ_ROOT / "data"
 
 
 class LocalPaths:
@@ -43,7 +21,7 @@ class LocalPaths:
 
     def __init__(self):
         self.on_sagemaker = True if os.getenv("SM_MODEL_DIR") else False
-        self.project_root = Path("/opt/ml/") if self.on_sagemaker else PROJ_ROOT
+        self.project_root = Path("/opt/ml/") if self.on_sagemaker else _PROJ_ROOT
         self.code_root = (self.project_root / "code") if self.on_sagemaker else self.project_root
 
         self.dir_datasets = self.project_root / ("input/data/datasets" if self.on_sagemaker else "data")
@@ -62,11 +40,15 @@ class LocalPaths:
         """SageMakers output dir ($SM_OUTPUT_DATA_DIR). The files under this directory are archived in output.tar.gz"""
 
 
+local_paths = LocalPaths()
+
+
 class TrainerBase(ABC):
     def __init__(self, log_file: Optional[Path] = None, classifier: Optional[Model] = None):
         self.logger = setup_logger(type(self).__name__, log_file=log_file)
         self.classifier = classifier
         self.training_metrics: Optional[TrainingMetrics] = None
+        self._initialize_artifact_dir()
 
     @abstractmethod
     def fit(self, *args, **kwargs):
@@ -75,3 +57,17 @@ class TrainerBase(ABC):
     def save_model(self):
         self.classifier.save()
         self.training_metrics.save()
+
+    def _initialize_artifact_dir(self):
+        """
+        Initialize the artifact directory.
+        """
+        if local_paths.dir_artifact.exists():
+            for file in local_paths.dir_artifact.iterdir():
+                if file.is_dir():
+                    rmtree(file)
+                else:
+                    file.unlink()
+        else:
+            local_paths.dir_artifact.mkdir()
+        (local_paths.dir_artifact / "__init__.py").touch()

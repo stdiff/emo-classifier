@@ -1,5 +1,8 @@
 from emo_classifier.model import Model
-from emo_classifier.classifiers.tfidf import TfidfClassifier, Thresholds
+from emo_classifier.metrics import Thresholds
+
+# from emo_classifier.classifiers.tfidf import TfidfClassifier
+from emo_classifier.classifiers.embedding_bag import EmbeddingBagClassifier
 
 
 def load_model() -> Model:
@@ -8,7 +11,8 @@ def load_model() -> Model:
 
     :return: Model instance you want to use in production
     """
-    return TfidfClassifier.load()
+    return EmbeddingBagClassifier.load()
+    # return TfidfClassifier.load()
 
 
 def load_classifier():

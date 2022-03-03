@@ -11,3 +11,7 @@ dist/
 
 ## temporary working directory
 tmp/
+
+## logging
+training/logs/*
+emo_classifier/resources/training

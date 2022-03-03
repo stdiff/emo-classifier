@@ -55,20 +55,13 @@ class TfidfClassifier(Model):
         self._s_thresholds = thresholds.as_series()[self.emotions]
         self._dict_thresholds = thresholds.as_dict()
 
-    def predict_proba(self, X: Union[pd.Series, np.ndarray]) -> np.ndarray:
+    def predict_proba(self, texts: Union[pd.Series, np.array]) -> np.ndarray:
         """
-        :param X: Series of texts
+        :param texts: Series of texts
         :return: array of prediction of shape (#instances, #emotions)
         """
-        X_vectorized = self.tfidf_vectorizer.transform(X)
+        X_vectorized = self.tfidf_vectorizer.transform(texts)
         return self.model.predict_proba(X_vectorized)
-
-    def predict_labels(self, X: Union[pd.Series, np.ndarray]):
-        if self.thresholds is None:
-            raise ValueError("The thresholds are not given.")
-
-        y_prob = self.predict_proba(X)
-        return np.where(y_prob > self._s_thresholds.values, 1, 0)
 
     def save_artifact_file(self, path: Path):
         joblib.dump(self, path, compress=3)
@@ -76,7 +69,7 @@ class TfidfClassifier(Model):
 
     def predict(self, comment: Comment) -> Prediction:
         X = np.array([comment.text])
-        y = self.predict_labels(X)[0, :]
+        y = self.predict_proba(X)[0, :]
         emotions = [emotion for i, emotion in enumerate(self.emotions) if y[i] > self._dict_thresholds.get(emotion)]
         return Prediction(id=comment.id, labels=emotions)
 

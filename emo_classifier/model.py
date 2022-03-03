@@ -1,11 +1,9 @@
-from typing import BinaryIO, Union
+from typing import BinaryIO
 from importlib import resources
 from abc import ABC, abstractmethod
 from pathlib import Path
-from shutil import rmtree
 
 import numpy as np
-import pandas as pd
 
 from emo_classifier import ARTIFACT_DIR
 from emo_classifier.api import Comment, Prediction
@@ -42,20 +40,6 @@ class Model(ABC):
         print(f"LOADED: {type(model).__name__} instance")
         return model
 
-    def _initialize_artifact_dir(self):
-        """
-        Initialize the artifact directory.
-        """
-        if ARTIFACT_DIR.exists():
-            for file in ARTIFACT_DIR.iterdir():
-                if file.is_dir():
-                    rmtree(file)
-                else:
-                    file.unlink()
-        else:
-            ARTIFACT_DIR.mkdir()
-        (ARTIFACT_DIR / "__init__.py").touch()
-
     @abstractmethod
     def save_artifact_file(self, path: Path):
         """
@@ -66,7 +50,6 @@ class Model(ABC):
         raise NotImplementedError
 
     def save(self):
-        self._initialize_artifact_dir()
         file_path = ARTIFACT_DIR / self.artifact_file_name
         self.save_artifact_file(file_path)
         print("SAVED:", file_path.absolute())
@@ -82,6 +65,13 @@ class Model(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def predict_proba(self, texts) -> np.ndarray:
+        """
+        :param texts: Series/Iterator of texts
+        :return: array of prediction of shape (#instances, #emotions)
+        """
+        raise NotImplementedError
+
     def predict(self, comment: Comment) -> Prediction:
         """
         Makes a prediction for a single Comment instance. This is the main functionality of the API.
@@ -89,12 +79,7 @@ class Model(ABC):
         :param comment: Comment instance
         :return: Prediction instance
         """
-        raise NotImplementedError
-
-    @abstractmethod
-    def predict_proba(self, X: Union[pd.Series, np.ndarray]) -> np.ndarray:
-        """
-        :param X: Series of texts
-        :return: array of prediction of shape (#instances, #emotions)
-        """
-        raise NotImplementedError
+        X = np.array([comment.text])
+        y = self.predict_proba(X)[0, :]
+        emotions = [emotion for i, emotion in enumerate(self.emotions) if y[i] > self._dict_thresholds.get(emotion)]
+        return Prediction(id=comment.id, labels=emotions)

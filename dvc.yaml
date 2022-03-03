@@ -12,7 +12,8 @@ stages:
     outs:
       - emo_classifier/artifact/
     metrics:
-      - emo_classifier/resources/TrainingMetrics.json
+      - emo_classifier/resources/TrainingMetrics.json:
+          cache: false
   evaluate:
     cmd: poetry run jupyter nbconvert --to HTML --execute notebook/error_analysis.ipynb
     deps:
@@ -21,8 +22,11 @@ stages:
       - emo_classifier/artifact
     outs:
       - emo_classifier/resources/dev_predictions.parquet
-      - emo_classifier/resources/Thresholds.json
+      - emo_classifier/resources/Thresholds.json:
+          cache: false
       - notebook/error_analysis.html
     metrics:
-      - emo_classifier/resources/DevMetrics.json
-      - emo_classifier/resources/TestMetrics.json
+      - emo_classifier/resources/DevMetrics.json:
+          cache: false
+      - emo_classifier/resources/TestMetrics.json:
+          cache: false

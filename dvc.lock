@@ -20,12 +20,12 @@ stages:
       size: 2701174
     outs:
     - path: emo_classifier/artifact/
-      md5: 94867d813f05c94b18af1a72a80f0685.dir
-      size: 35298950
-      nfiles: 3
+      md5: e6cd41021a7a09fb535f1be17ffde0c0.dir
+      size: 527833
+      nfiles: 5
     - path: emo_classifier/resources/TrainingMetrics.json
-      md5: 970ca5936e7fc6f8c9755e42e4f959dd
-      size: 238
+      md5: 97f8781d9f1876aaf8ee957bac7931f7
+      size: 208
   evaluate:
     cmd: poetry run jupyter nbconvert --to HTML --execute notebook/error_analysis.ipynb
     deps:
@@ -36,22 +36,22 @@ stages:
       md5: b2536690aedc26976976d44a64082858
       size: 341195
     - path: emo_classifier/artifact
-      md5: 94867d813f05c94b18af1a72a80f0685.dir
-      size: 35298950
-      nfiles: 3
+      md5: e6cd41021a7a09fb535f1be17ffde0c0.dir
+      size: 527833
+      nfiles: 5
     outs:
     - path: emo_classifier/resources/DevMetrics.json
-      md5: 0319f44e0dd07722c08d3083115411c3
-      size: 6218
+      md5: 1ae57ab52ec54ac22e0379142f02b004
+      size: 378
     - path: emo_classifier/resources/TestMetrics.json
-      md5: fa22f20a175508112dde22b7de4f6765
-      size: 38
+      md5: 8a82546226e99da2c7071542408a726b
+      size: 345
     - path: emo_classifier/resources/Thresholds.json
-      md5: 2138a10e45842b147e52ac4938290f28
-      size: 892
+      md5: fcb01e61f6d06280defa152f1289d3da
+      size: 473
     - path: emo_classifier/resources/dev_predictions.parquet
-      md5: 5aa9f39ff4d9b7d5e8d854902658ceca
-      size: 1662342
+      md5: 3eaa3ae341f8e630410aa5f0accb919c
+      size: 301943
     - path: notebook/error_analysis.html
-      md5: 8058f01f80a131c36dacba105a0da5b5
-      size: 5303998
+      md5: a98e773751e38d6cc5a7e7a9753869ea
+      size: 3081802

@@ -1,7 +1,6 @@
 """
 This script is the entry point of a SageMaker TrainingJob for TFIDF
 """
-import shutil
 from typing import Optional
 from datetime import datetime
 
@@ -32,7 +31,7 @@ class TfidfTrainer(TrainerBase):
             OneVsRestClassifier(LogisticRegression(random_state=0, solver="liblinear", fit_intercept=False)),
             param_grid={"estimator__C": [1.0, 10, 100]},
             cv=5,
-            scoring="f1_macro",
+            scoring="roc_auc_ovr",
             return_train_score=True,
             n_jobs=4,
         )
