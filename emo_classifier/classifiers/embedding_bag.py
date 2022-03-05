@@ -127,6 +127,9 @@ class EmbeddingBagClassifier(Model):
 
     def predict_proba(self, texts) -> np.ndarray:
         X = self.texts2tensor(texts)
+        if X.shape[1] == 0:
+            return np.zeros((X.shape[0],len(self.emotions)))
+
         self.model.eval()
         with torch.no_grad():
             y = torch.softmax(self.model(X), dim=1)
