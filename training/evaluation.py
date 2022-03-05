@@ -1,12 +1,12 @@
 from datetime import datetime
 from typing import Union, Optional
-from dataclasses import dataclass, asdict
 
 import numpy as np
 import pandas as pd
 import altair as alt
-from sklearn.metrics import precision_recall_curve, precision_recall_fscore_support, roc_auc_score
+from sklearn.metrics import precision_recall_curve, precision_recall_fscore_support
 
+from emo_classifier.classifiers.metrics import SimpleStats, stats_roc_auc
 from emo_classifier.metrics import Thresholds, DevMetrics, TestMetrics
 from training import LocalPaths
 from training.chart import metrics_scatter_plot, positive_rate_scatter_plot, prediction_bar_chart_by_label
@@ -31,44 +31,6 @@ def precision_recall_dataframe(y_true: pd.Series, y_prob: pd.Series) -> pd.DataF
     df_metrics = pd.DataFrame({"threshold": threshold, "precision": precision[:-1], "recall": recall[:-1]})
     df_metrics["f1_score"] = f1_score(df_metrics["precision"], df_metrics["recall"])
     return df_metrics
-
-
-@dataclass
-class SimpleStats:
-    avg: float
-    min: float
-    max: float
-
-    @classmethod
-    def from_array(cls, array: Union[np.ndarray, list[float]]) -> "SimpleStats":
-        return cls(avg=float(np.mean(array)), min=float(np.min(array)), max=float(np.max(array)))
-
-    def as_dict(self) -> dict[str, float]:
-        return asdict(self)
-
-
-def stats_roc_auc(y_true: np.ndarray, y_score: np.ndarray) -> SimpleStats:
-    """
-    Compute average/max/min of areas under the roc curves
-
-    :param y_true: binary matrix of shape (# instance, # label)
-    :param y_score: score matrix of shape (# instance, # label)
-    :return:
-    """
-    if y_true.shape != y_score.shape:
-        raise ValueError(f"The shapes do not agree. ({y_true.shape} != {y_score.shape})")
-
-    areas = []
-    p = y_true.shape[1]
-    for j in range(p):
-        try:
-            ## The dev set contains a label which is always negative. In this case AUC = 0.
-            area = roc_auc_score(y_true[:, j], y_score[:, j])
-        except ValueError:
-            area = 0
-        areas.append(area)
-
-    return SimpleStats.from_array(areas)
 
 
 class PredictionOnDevSetEvaluator:

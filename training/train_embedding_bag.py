@@ -17,7 +17,7 @@ from emo_classifier.classifiers.embedding_bag import (
     EmbeddingBagClassifier,
 )
 from emo_classifier.metrics import TrainingMetrics
-from training.evaluation import stats_roc_auc
+from emo_classifier.classifiers.metrics import stats_roc_auc
 from training import TrainerBase, LocalPaths
 from training.pl_logger import SimpleLogger
 from training.data_module import GoEmotionsDataModule

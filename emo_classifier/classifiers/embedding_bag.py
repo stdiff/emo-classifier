@@ -5,7 +5,7 @@ from typing import Optional, Iterator, BinaryIO
 
 import numpy as np
 import pandas as pd
-from training.evaluation import stats_roc_auc
+from emo_classifier.classifiers.metrics import stats_roc_auc
 
 import torch
 from torch import Tensor, nn
