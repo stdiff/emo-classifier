@@ -30,93 +30,6 @@ def load_data(file_name: str, emotions: list[str]) -> pd.DataFrame:
     return df
 
 
-def _compute_label_proportion(data: pd.DataFrame, emotions: list[str]) -> pd.DataFrame:
-    """
-    emotion -> positive rate
-
-    :param data: DataFrame[emotion0, ...]. Each column for emotion is binary
-    :return: DataFrame[emotion, proportion, count]
-    """
-    df_label_proportion = (
-        pd.concat(
-            [
-                data[emotions].mean().rename("proportion"),
-                data[emotions].sum().rename("count"),
-            ],
-            axis=1,
-        )
-        .sort_values(by="count", ascending=False)
-        .reset_index()
-        .rename({"index": "emotion"}, axis=1)
-    )
-
-    return df_label_proportion
-
-
-def _bar_chart_label_proportion_base(data: pd.DataFrame) -> alt.Chart:
-    """
-    Only for the training set.
-    For dev/test set there is a scatter plot for positive rate
-
-    :param data: DataFrame[emotion, proportion, count]. emotion is PK
-    """
-    chart = (
-        alt.Chart(data)
-        .mark_bar()
-        .encode(
-            x=alt.X("proportion:Q", axis=alt.Axis(format="%")),
-            y=alt.Y("emotion:N", sort="-x"),
-            color=alt.Color("emotion:N", legend=None),
-            tooltip=["emotion:N", alt.Tooltip("proportion:Q", format="0.2%"), alt.Tooltip("count:Q")],
-        )
-    )
-    return chart
-
-
-def _count_emotions(data: pd.DataFrame, emotions: list[str]) -> pd.DataFrame:
-    """
-    Count documents with 1 label, 2 labels, 3 labels and so on.
-
-    :param data: DataFrame[emotion0, ...]
-    :param emotions: list of emotions
-    :return: DataFrame[n_label, n_text, proportion]
-    """
-    df_count_emotions = (
-        data[emotions]
-        .sum(axis=1)
-        .value_counts()
-        .reset_index()
-        .rename({"index": "n_label", 0: "n_text"}, axis=1)
-        .assign(proportion=lambda df: df["n_text"] / len(data))
-    )
-    return df_count_emotions
-
-
-def _chart_count_emotions(data: pd.DataFrame) -> alt.Chart:
-    """
-    :param data: DataFrame[n_label, n_text, proportion]
-    :return: Bar chart of number of texts by number of labels
-    """
-    title_n_label = "number of lables"
-    title_n_text = "number of texts"
-
-    chart = (
-        alt.Chart(data)
-        .mark_bar()
-        .encode(
-            x=alt.X("n_text:Q", title=title_n_text, scale=alt.Scale(type="sqrt")),
-            y=alt.Y("n_label:N", title=title_n_label),
-            color=alt.Color("n_label:N", title=title_n_label, legend=None),
-            tooltip=[
-                alt.Tooltip("n_label", title=title_n_label),
-                alt.Tooltip("n_text", title=title_n_text),
-                alt.Tooltip("proportion:Q", format="0.2%"),
-            ],
-        )
-    )
-    return chart
-
-
 class Preprocessor:
     """
     Responsible for loading raw data and creating feature matrix (X) and the target (y).
@@ -124,14 +37,14 @@ class Preprocessor:
 
     emotions = load_emotions()
 
-    def __init__(self, with_lemmtatization: bool = False, min_df: Optional[int] = None):
+    def __init__(self, with_lemmtatization: bool = False):
         self.with_lemmatization = with_lemmtatization
-        self.min_df = min_df
 
         self._df_train: LazyDataFrame = None
         self._df_dev: LazyDataFrame = None
         self._df_test: LazyDataFrame = None
         self._df_positive_rate: LazyDataFrame = None
+        self._df_positive_rate_dev: LazyDataFrame = None
         self.tokenizer = SpacyEnglishTokenizer(with_lemmatization=with_lemmtatization)
 
     @property
@@ -152,62 +65,141 @@ class Preprocessor:
             self._df_test = load_data("test.parquet", self.emotions)
         return self._df_test
 
-    @property
-    def df_token(self) -> pd.DataFrame:
+    def _list_token_by_doc(self, data: pd.DataFrame) -> pd.DataFrame:
         """
-        Not cached
-
+        :param data: DataFrame[text, ...]. Its index must be doc_id
         :return: DataFrame[id, token]
         """
-        df_token = []
-
-        for doc_id, row in self.df_train.iterrows():
+        rows_token = []
+        for doc_id, row in data.iterrows():
             tokens = set(self.tokenizer(row["text"]))
             for token in tokens:
-                df_token.append((doc_id, token))
+                rows_token.append((doc_id, token))
 
-        df_token = pd.DataFrame(df_token, columns=["id", "token"])
+        return pd.DataFrame(rows_token, columns=["id", "token"])
 
-        return df_token
+    def _compute_positive_rate(self, data_raw: pd.DataFrame) -> pd.DataFrame:
+        """
+        DataFrame of positive rate P(positive|token in a text) for each token
+
+        :param data_raw: DataFrame[emotion1, emotion2, ...]. Its index must be document id
+        :return: DataFrame[token, n_doc, r_pos, label, rank]
+        """
+        df_pos = []
+        df_token = self._list_token_by_doc(data_raw)
+        min_df = int(0.001 * len(data_raw))
+
+        for emotion in self.emotions:
+            gb = df_token.merge(data_raw.reset_index()[["id", emotion]]).groupby("token")
+            df_tmp = pd.concat([gb.size().rename("n_doc"), gb.mean()[emotion].rename("r_pos")], axis=1).reset_index()
+            df_tmp["label"] = emotion
+
+            df_tmp.sort_values(by="r_pos", ascending=False, inplace=True)
+            df_tmp.query("n_doc > min_df", inplace=True)
+            df_tmp["rank"] = df_tmp["r_pos"].rank(method="min", ascending=False)
+            df_pos.append(df_tmp)
+
+        return pd.concat(df_pos, axis=0)
 
     @property
     def df_positive_rate(self) -> pd.DataFrame:
         """
-        DataFrame of positive rate P(positive|token in a text)
+        DataFrame of positive rate P(positive|token in a text) in training set
 
         :return: DataFrame[token, n_doc, r_pos, label, rank]
         """
         if self._df_positive_rate is None:
-
-            if self.min_df is None:
-                self.min_df = int(0.001 * len(self.df_train))
-            print(f"Tokens with document frequency < {self.min_df} will be ignored.")
-
-            df_pos = []
-            for emotion in self.emotions:
-                gb = self.df_token.merge(self.df_train.reset_index()[["id", emotion]]).groupby("token")
-                df_tmp = pd.concat(
-                    [gb.size().rename("n_doc"), gb.mean()[emotion].rename("r_pos")], axis=1
-                ).reset_index()
-                df_tmp["label"] = emotion
-
-                df_tmp.sort_values(by="r_pos", ascending=False, inplace=True)
-                df_tmp.query("n_doc > @self.min_df", inplace=True)
-                df_tmp["rank"] = df_tmp["r_pos"].rank(method="min", ascending=False)
-                df_pos.append(df_tmp)
-
-            self._df_positive_rate = pd.concat(df_pos, axis=0)
+            self._df_positive_rate = self._compute_positive_rate(self.df_train)
 
         return self._df_positive_rate
 
-    def count_emotions(self) -> pd.DataFrame:
-        return _count_emotions(self.df_train, self.emotions)
+    @property
+    def df_positive_rate_dev(self) -> pd.DataFrame:
+        """
+        DataFrame of positive rate P(positive|token in a text) in dev set
+
+        :return: DataFrame[token, n_doc, r_pos, label, rank]
+        """
+        if self._df_positive_rate_dev is None:
+            self._df_positive_rate_dev = self._compute_positive_rate(self.df_dev)
+
+        return self._df_positive_rate_dev
+
+    def _count_emotions(self, data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Count documents with 1 label, 2 labels, 3 labels and so on.
+
+        :param data: DataFrame[emotion0, ...]
+        :return: DataFrame[n_label, n_text, proportion]
+        """
+        df_count_emotions = (
+            data[self.emotions]
+            .sum(axis=1)
+            .value_counts()
+            .reset_index()
+            .rename({"index": "n_label", 0: "n_text"}, axis=1)
+            .assign(proportion=lambda df: df["n_text"] / len(data))
+        )
+        return df_count_emotions
+
+    def df_count_emotions(self) -> pd.DataFrame:
+        return self._count_emotions(self.df_train)
+
+    def df_count_emotions_dev(self):
+        return self._count_emotions(self.df_dev)
+
+    @staticmethod
+    def _chart_count_emotions(data: pd.DataFrame) -> alt.Chart:
+        """
+        :param data: DataFrame[n_label, n_text, proportion]
+        :return: Bar chart of number of texts by number of labels
+        """
+        title_n_label = "number of lables"
+        title_n_text = "number of texts"
+
+        chart = (
+            alt.Chart(data)
+            .mark_bar()
+            .encode(
+                x=alt.X("n_text:Q", title=title_n_text, scale=alt.Scale(type="sqrt")),
+                y=alt.Y("n_label:N", title=title_n_label),
+                color=alt.Color("n_label:N", title=title_n_label, legend=None),
+                tooltip=[
+                    alt.Tooltip("n_label", title=title_n_label),
+                    alt.Tooltip("n_text", title=title_n_text),
+                    alt.Tooltip("proportion:Q", format="0.2%"),
+                ],
+            )
+        )
+        return chart
 
     def chart_count_emotions(self) -> alt.Chart:
-        return _chart_count_emotions(_count_emotions(self.df_train, self.emotions))
+        return self._chart_count_emotions(self.df_count_emotions())
 
     def chart_count_emotions_dev(self) -> alt.Chart:
-        return _chart_count_emotions(_count_emotions(self.df_dev, self.emotions))
+        return self._chart_count_emotions(self.df_count_emotions_dev())
+
+    def _compute_label_proportion(self, data: pd.DataFrame) -> pd.DataFrame:
+        """
+        emotion -> positive rate
+
+        :param data: DataFrame[emotion0, ...]. Each column for emotion is binary
+        :return: DataFrame[emotion, proportion, count]
+        """
+        df_label_proportion = (
+            pd.concat(
+                [
+                    data[self.emotions].mean().rename("proportion"),
+                    data[self.emotions].sum().rename("count"),
+                ],
+                axis=1,
+            )
+            .sort_values(by="count", ascending=False)
+            .reset_index()
+            .rename({"index": "emotion"}, axis=1)
+        )
+
+        return df_label_proportion
 
     @property
     def df_label_proportion(self) -> pd.DataFrame:
@@ -216,7 +208,7 @@ class Preprocessor:
 
         :return: DataFrame[emotion, proportion]
         """
-        return _compute_label_proportion(self.df_train, self.emotions)
+        return self._compute_label_proportion(self.df_train)
 
     @property
     def df_label_proportion_dev(self) -> pd.DataFrame:
@@ -225,21 +217,41 @@ class Preprocessor:
 
         :return: DataFrame[emotion, proportion]
         """
-        return _compute_label_proportion(self.df_dev, self.emotions)
+        return self._compute_label_proportion(self.df_dev)
+
+    @staticmethod
+    def _bar_chart_label_proportion_base(data: pd.DataFrame) -> alt.Chart:
+        """
+        Only for the training set.
+        For dev/test set there is a scatter plot for positive rate
+
+        :param data: DataFrame[emotion, proportion, count]. emotion is PK
+        """
+        chart = (
+            alt.Chart(data)
+            .mark_bar()
+            .encode(
+                x=alt.X("proportion:Q", axis=alt.Axis(format="%")),
+                y=alt.Y("emotion:N", sort="-x"),
+                color=alt.Color("emotion:N", legend=None),
+                tooltip=["emotion:N", alt.Tooltip("proportion:Q", format="0.2%"), alt.Tooltip("count:Q")],
+            )
+        )
+        return chart
 
     def bar_chart_label_proportion(self) -> alt.Chart:
         """
         Only for the training set.
         For dev/test set there is a scatter plot for positive rate
         """
-        return _bar_chart_label_proportion_base(self.df_label_proportion)
+        return self._bar_chart_label_proportion_base(self.df_label_proportion)
 
     def bar_chart_label_proportion_dev(self) -> alt.Chart:
         """
         Only for the training set.
         For dev/test set there is a scatter plot for positive rate
         """
-        return _bar_chart_label_proportion_base(self.df_label_proportion_dev)
+        return self._bar_chart_label_proportion_base(self.df_label_proportion_dev)
 
     def bar_chart_count_docs_by_length(self) -> alt.Chart:
         df_doc_length = (
@@ -265,62 +277,78 @@ class Preprocessor:
         )
         return chart
 
-    def heatmap_label_correlation(self) -> alt.Chart:
+    def chart_label_correlation(self) -> alt.Chart:
         return correlation_heatmap(self.df_train.drop("text", axis=1), annot=False)
 
-    def histogram_positive_rate(self) -> alt.Chart:
-        df_pos = self.df_positive_rate.assign(r_pos_rounded=(self.df_positive_rate["r_pos"] * 100).astype(int))
-        df_pos_count = df_pos.groupby(["label", "r_pos_rounded"]).size().rename("count").reset_index()
-        df_pos_count["r_pos_rounded"] = df_pos_count["r_pos_rounded"] * 0.01
+    def chart_label_correlation_dev(self) -> alt.Chart:
+        return correlation_heatmap(self.df_dev.drop("text", axis=1), annot=False)
 
-        df_pos_count = df_pos_count.merge(self.df_label_proportion, left_on="label", right_on="emotion").rename(
-            {"proportion": "r_label"}, axis=1
-        )
-
-        chart = (
-            alt.Chart(df_pos_count)
-            .mark_bar()
-            .encode(
-                x=alt.X("r_pos_rounded:Q", axis=alt.Axis(format="%")),
-                y=alt.Y("count:Q", scale=alt.Scale(type="sqrt")),
-                color=alt.condition(
-                    alt.datum.r_pos_rounded > alt.datum.r_label, alt.value("LightCoral"), alt.value("DodgerBlue")
-                ),
-                facet=alt.Facet("label", columns=6),
-            )
-            .properties(height=100, width=140, title="Histogram of positive rate")
-        )
-        return chart
-
-    @property
-    def df_signal_words(self) -> pd.DataFrame:
+    @staticmethod
+    def _df_signal_words(data_positive_rate: pd.DataFrame) -> pd.DataFrame:
         """
         tokens with top 5% positive rate
 
         :return: DataFrame[token, n_doc, r_pos, label, rank, r_pos_rounded, threshold]
         """
-        df_thresholds = self.df_positive_rate.groupby("label")["r_pos"].quantile(0.95).rename("threshold").reset_index()
+        df_thresholds = data_positive_rate.groupby("label")["r_pos"].quantile(0.95).rename("threshold").reset_index()
         df_signal_words = (
-            self.df_positive_rate.merge(df_thresholds)
+            data_positive_rate.merge(df_thresholds)
             .assign(is_signal_word=lambda df: df["r_pos"] > df["threshold"])
             .query("is_signal_word")
             .drop("is_signal_word", axis=1)
         )
         return df_signal_words
 
-    def bar_chart_of_top5_signal_words(self) -> alt.Chart:
-        chart = (
-            alt.Chart(self.df_signal_words.query("rank <=5"))
-            .mark_bar()
-            .encode(
-                x=alt.X("r_pos:Q", axis=alt.Axis(format="%")),
-                y=alt.Y("token:N", title=None, sort="-x"),
-                facet=alt.Facet("label:N", columns=5, align="all"),
-            )
-            .resolve_scale(y="independent")
-            .properties(height=90, width=90)
+    @property
+    def df_signal_words(self) -> pd.DataFrame:
+        """
+        tokens with top 5% positive rate in training set
+
+        :return: DataFrame[token, n_doc, r_pos, label, rank, r_pos_rounded, threshold]
+        """
+        return self._df_signal_words(self.df_positive_rate)
+
+    @property
+    def df_signal_words_dev(self) -> pd.DataFrame:
+        """
+        tokens with top 5% positive rate in dev set
+
+        :return: DataFrame[token, n_doc, r_pos, label, rank, r_pos_rounded, threshold]
+        """
+        return self._df_signal_words(self.df_positive_rate_dev)
+
+    @staticmethod
+    def _chart_top5_signal_words(data_signal_words: pd.DataFrame) -> alt.Chart:
+        df_top5 = (
+            data_signal_words.groupby("label", as_index=False)
+            .apply(lambda df: df.sort_values(by="rank").head(5).assign(rank=range(1, 6)))
+            .reset_index(drop=True)
         )
-        return chart
+
+        chart_base = alt.Chart(df_top5)
+
+        chart_heatmap = chart_base.mark_rect().encode(
+            x=alt.X("rank:O", axis=alt.Axis(labelAngle=0)),
+            y="label",
+            color=alt.Color("r_pos", scale=alt.Scale(scheme="greens", domain=[0, 1])),
+            tooltip=["label", "token", alt.Tooltip("r_pos", format="0.2%")],
+        )
+
+        chart_text = chart_base.mark_text(align="center", size=14).encode(
+            x="rank:O",
+            y="label",
+            text="token",
+            color=alt.condition(alt.datum.r_pos > 0.5, alt.value("white"), alt.value("black")),
+            tooltip=["label", "token", alt.Tooltip("r_pos", format="0.2%")],
+        )
+
+        return chart_heatmap + chart_text
+
+    def chart_top5_signal_words(self) -> alt.Chart:
+        return self._chart_top5_signal_words(self.df_signal_words)
+
+    def chart_top5_signal_words_dev(self) -> alt.Chart:
+        return self._chart_top5_signal_words(self.df_signal_words_dev)
 
     def _split_to_X_and_Y(self, data: pd.DataFrame) -> tuple[pd.Series, pd.DataFrame]:
         return data["text"], data[self.emotions]
