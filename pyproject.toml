@@ -42,6 +42,8 @@ boto3 = "1.20.43"
 sagemaker = "2.73.0"
 docker = "5.0.3"
 streamlit = "1.6.0"
+ray = {version = "1.11.0", extras = ["default"]}
+opencensus = "0.8.0"
 
 [tool.black]
 line-length = 120
