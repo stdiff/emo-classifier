@@ -37,7 +37,8 @@ class EmbeddingBagModule(pl.LightningModule):
         self.embedding = nn.Embedding(num_embeddings=self.vocab_size, embedding_dim=self.embedding_dim)
         self.linear = nn.Linear(in_features=self.embedding_dim, out_features=self.n_labels, bias=False)
 
-        self.loss = nn.BCEWithLogitsLoss(reduction="sum")
+        self.weights = torch.tensor([2] * self.n_labels)
+        self.loss = nn.BCEWithLogitsLoss(reduction="sum", pos_weight=self.weights)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """

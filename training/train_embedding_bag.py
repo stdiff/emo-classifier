@@ -17,7 +17,7 @@ from emo_classifier.classifiers.embedding_bag import (
     EmbeddingBagClassifier,
 )
 from emo_classifier.metrics import TrainingMetrics
-from emo_classifier.classifiers.metrics import stats_roc_auc
+from emo_classifier.classifiers.metrics import compute_probabilities, stats_roc_auc
 from training import TrainerBase, LocalPaths
 from training.pl_logger import SimpleLogger
 from training.data_module import GoEmotionsDataModule
@@ -43,8 +43,7 @@ class EmbeddingBagTrainer(TrainerBase):
 
         data_module.setup("fit")
         save_vocab(data_module.vocab)
-        self.logger.info("Vocab is fitted and saved.")
-        print("!! Vocab is fitted and saved.")
+        print(f"Vocab is fitted and saved. vocab_size = {len(data_module.vocab)}")
         model = EmbeddingBagModule(vocab_size=len(data_module.vocab), embedding_dim=self.embedding_dim)
 
         early_stopping = EarlyStopping(monitor="val_roc_auc", patience=self.patience)
@@ -62,22 +61,16 @@ class EmbeddingBagTrainer(TrainerBase):
             callbacks=[early_stopping, model_checkpoint],
             logger=[simple_logger, tensorboard_logger],
             deterministic=True,
-            # accelerator="cpu",
-            # devices=4,
         )
         trainer.fit(model, data_module)
         self.logger.info(f"Model fitted")
 
-        X_train, Y_train = data_module.preprocessor.get_train_X_and_Y()
         self.classifier = EmbeddingBagClassifier(model)
-        self.logger.info(f"EmbeddingBagClassifier instance is created.")
-
-        Y_prob = self.classifier.predict_proba_in_batch(X_train)
-        self.logger.info("Inference on the training set is done.")
+        y_true, y_prob = compute_probabilities(self.classifier.model, data_module.val_dataloader())
 
         self.training_metrics = TrainingMetrics(
-            log_loss=log_loss(Y_train, Y_prob),
-            auc_roc=stats_roc_auc(Y_train.values, Y_prob).as_dict(),
+            log_loss=self.classifier.model.loss(y_true, y_prob).item(),
+            auc_roc=stats_roc_auc(y_true, y_prob).as_dict(),
             best_params=json.dumps(
                 dict(embedding_dim=self.embedding_dim, max_epoch=self.max_epoch, patience=self.patience)
             ),
@@ -94,4 +87,4 @@ def start_train_embedding_bag_model(embedding_dim: int = 64, max_epoch: int = 3,
 
 
 if __name__ == "__main__":
-    start_train_embedding_bag_model(max_epoch=50, patience=5)
+    start_train_embedding_bag_model(embedding_dim=64, max_epoch=20, patience=3)

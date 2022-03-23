@@ -95,7 +95,7 @@ class Preprocessor:
             df_tmp["label"] = emotion
 
             df_tmp.sort_values(by="r_pos", ascending=False, inplace=True)
-            df_tmp.query("n_doc > min_df", inplace=True)
+            df_tmp.query("n_doc > @min_df", inplace=True)
             df_tmp["rank"] = df_tmp["r_pos"].rank(method="min", ascending=False)
             df_pos.append(df_tmp)
 

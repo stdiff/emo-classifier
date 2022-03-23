@@ -9,7 +9,7 @@ from torch.nn.utils.rnn import pad_sequence
 from torchtext.vocab import build_vocab_from_iterator, Vocab
 import pytorch_lightning as pl
 
-from emo_classifier.classifiers.text import SpacyEnglishTokenizer
+from emo_classifier.classifiers.text import SpacyEnglishTokenizer, load_vocab
 from emo_classifier.classifiers.embedding_bag import padding_token, unknown_token
 from emo_classifier.emotion import load_emotions
 from training.preprocessing import Preprocessor
@@ -23,6 +23,7 @@ class GoEmotionsDataModule(pl.LightningDataModule):
         min_df: int = 10,
         batch_size: int = 32,
         batch_size_eval: int = 128,
+        load_vocab: bool = False,
     ):
         """
 
@@ -31,6 +32,7 @@ class GoEmotionsDataModule(pl.LightningDataModule):
         :param min_df: minimum document frequency (DF). A term with lower DF will be ignored.
         :param batch_size: batch size for training
         :param batch_size_eval: batch size for evaluation (validation, test)
+        :param load_vocab: if a Vocab instance will be loaded.
         """
         super().__init__()
         self.with_lemmatization = with_lemmatization
@@ -40,6 +42,7 @@ class GoEmotionsDataModule(pl.LightningDataModule):
         self.tokenizer = SpacyEnglishTokenizer(self.with_lemmatization, self.remove_stopwords)
         self.padding_token = padding_token
         self.unknown_token = unknown_token
+        self.load_vocab = load_vocab
         self.vocab: Optional[Vocab] = None
         self.padding_index = 0
         self.maxlen: Optional[int] = None  ## TODO: limit the number of indices in a single text
@@ -55,11 +58,15 @@ class GoEmotionsDataModule(pl.LightningDataModule):
         self.batch_size_eval = batch_size_eval
 
     def build_vocab(self, texts: Iterator[str], min_freq: int = 20):
-        self.vocab = build_vocab_from_iterator(
-            (self.tokenizer(text) for text in texts),
-            specials=[self.padding_token, self.unknown_token],
-            min_freq=min_freq,
-        )
+        if self.load_vocab:
+            self.vocab = load_vocab()
+        else:
+            self.vocab = build_vocab_from_iterator(
+                (self.tokenizer(text) for text in texts),
+                specials=[self.padding_token, self.unknown_token],
+                min_freq=min_freq,
+            )
+
         self.vocab.set_default_index(self.vocab[self.unknown_token])
         self.padding_index = self.vocab[self.padding_token]
 

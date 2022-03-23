@@ -57,27 +57,23 @@ class PredictionOnDevSetEvaluator:
             self.Y_prob = Y_prob
 
         self._best_thresholds: Optional[pd.Series] = None
-        self._metrics_dataframe: Optional[pd.DataFrame] = None
 
     @property
-    def metrics_dataframe(self) -> pd.DataFrame:
+    def _metrics_dataframe(self) -> pd.DataFrame:
         """
         :return: DataFrame[label, threshold, precision, recall, f1_score]
         """
-        if self._metrics_dataframe is None:
-            columns = ["label", "threshold", "precision", "recall", "f1_score"]
-            df = pd.DataFrame(columns=columns)
+        columns = ["label", "threshold", "precision", "recall", "f1_score"]
+        df = pd.DataFrame(columns=columns)
 
-            for label in self.labels:
-                y_true = self.Y_true[label]
-                y_prob = self.Y_prob[label]
-                df_pr = precision_recall_dataframe(y_true, y_prob)
-                df_pr["label"] = label
-                df = df.append(df_pr)
+        for label in self.labels:
+            y_true = self.Y_true[label]
+            y_prob = self.Y_prob[label]
+            df_pr = precision_recall_dataframe(y_true, y_prob)
+            df_pr["label"] = label
+            df = df.append(df_pr)
 
-            self._metrics_dataframe = df
-
-        return self._metrics_dataframe
+        return df
 
     @property
     def best_thresholds(self) -> pd.DataFrame:
@@ -92,7 +88,7 @@ class PredictionOnDevSetEvaluator:
 
         if self._best_thresholds is None:
             self._best_thresholds: pd.DataFrame = (
-                self.metrics_dataframe.groupby("label", as_index=False).apply(pick_best_row).reset_index(drop=True)
+                self._metrics_dataframe.groupby("label", as_index=False).apply(pick_best_row).reset_index(drop=True)
             )
             label2threshold = {r.label: r.threshold for r in self._best_thresholds.itertuples()}
             positive_rate = [(self.Y_prob[label] > label2threshold[label]).mean() for label in self.labels]
@@ -112,6 +108,12 @@ class PredictionOnDevSetEvaluator:
 
     def macro_f1_score(self) -> float:
         return self.best_thresholds["f1_score"].mean()
+
+    def macro_recall(self) -> float:
+        return self.best_thresholds["recall"].mean()
+
+    def macro_precision(self) -> float:
+        return self.best_thresholds["precision"].mean()
 
     def prediction_bar_chart_by_label(self) -> alt.Chart:
         return prediction_bar_chart_by_label(df_prob=self.Y_prob)
