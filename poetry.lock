@@ -2387,7 +2387,7 @@ full = ["itsdangerous", "jinja2", "python-multipart", "pyyaml", "requests", "gra
 
 [[package]]
 name = "streamlit"
-version = "1.6.0"
+version = "1.7.0"
 description = "The fastest way to build data apps in Python"
 category = "dev"
 optional = false
@@ -2883,7 +2883,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<3.10"
-content-hash = "2b597296fcb8567cdfcf9dd982383a21826d89867dfa5d5ab36bf52b7c5b2f81"
+content-hash = "28f2f78a0f8a8e44c3951f22a0121d0361849dcf747e6dd4fda0d91174ce2af9"
 
 [metadata.files]
 absl-py = [
@@ -4573,8 +4573,8 @@ starlette = [
     {file = "starlette-0.16.0.tar.gz", hash = "sha256:e1904b5d0007aee24bdd3c43994be9b3b729f4f58e740200de1d623f8c3a8870"},
 ]
 streamlit = [
-    {file = "streamlit-1.6.0-py2.py3-none-any.whl", hash = "sha256:daf394e824b070e157d78651926dfcabbc9ecbdfa6898c0c161fad9e41f1e8db"},
-    {file = "streamlit-1.6.0.tar.gz", hash = "sha256:f7253189ef29e5e968458237440cf511a4a29b42a812c7c785998106c3ee9108"},
+    {file = "streamlit-1.7.0-py2.py3-none-any.whl", hash = "sha256:8c411afd0d67ded9fe2efdd57da3b4ac43286177a6b6ada74d499e19367461f3"},
+    {file = "streamlit-1.7.0.tar.gz", hash = "sha256:f9e41d05e1ea85d0a00e980456180a505b204e5aa25c4359262c054ed196f2c4"},
 ]
 tensorboard = [
     {file = "tensorboard-2.8.0-py3-none-any.whl", hash = "sha256:65a338e4424e9079f2604923bdbe301792adce2ace1be68da6b3ddf005170def"},
