@@ -1,1 +1,1 @@
-{"log_loss": 29.346423143353007, "auc_roc": {"avg": 0.5, "min": 0.5, "max": 0.5}, "best_params": "{\"embedding_dim\": 64, \"max_epoch\": 50, \"patience\": 5}", "timestamp": "2022-03-03T23:20:34.977307+01:00"}
+{"log_loss": 71117.4375, "auc_roc": {"avg": 0.6060600829322318, "min": 0.47534436190423307, "max": 0.9015409395973155}, "best_params": "{\"embedding_dim\": 64, \"max_epoch\": 20, \"patience\": 3}", "timestamp": "2022-03-25T00:58:47.226696+01:00"}

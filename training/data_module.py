@@ -76,7 +76,7 @@ class GoEmotionsDataModule(pl.LightningDataModule):
 
     def XY2TensorDataset(self, X: pd.Series, Y: pd.DataFrame) -> TensorDataset:
         X_tensor = self.texts2tensor(X)
-        Y_tensor = torch.from_numpy(Y.values.astype(float))
+        Y_tensor = torch.from_numpy(Y.values).float()
         return TensorDataset(X_tensor, Y_tensor)
 
     def setup(self, stage: Optional[str] = None) -> None:

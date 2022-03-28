@@ -35,6 +35,7 @@ class EmbeddingBagModule(pl.LightningModule):
         self.n_labels = len(load_emotions())
 
         self.embedding = nn.Embedding(num_embeddings=self.vocab_size, embedding_dim=self.embedding_dim)
+        self.linear_middle = nn.Linear(in_features=self.embedding_dim, out_features=self.embedding_dim)
         self.linear = nn.Linear(in_features=self.embedding_dim, out_features=self.n_labels, bias=False)
 
         self.weights = torch.tensor([2] * self.n_labels)
@@ -46,12 +47,13 @@ class EmbeddingBagModule(pl.LightningModule):
         :return: Tensor of shape (batch size, # labels)
         """
         x = self.embedding(x).mean(dim=1)
+        x = self.linear_middle(x)
         return self.linear(x)
 
     def training_step(self, batch, batch_idx) -> torch.Tensor:
         X, Y = batch
         y_hat = self(X)
-        loss = self.loss(Y, y_hat)
+        loss = self.loss(y_hat, Y)
         self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         return loss
 
@@ -63,7 +65,8 @@ class EmbeddingBagModule(pl.LightningModule):
     def validation_epoch_end(self, outputs: list[tuple[torch.Tensor, torch.Tensor]]):
         Y_true = torch.vstack([Y_true for Y_true, _ in outputs])
         Y_hat = torch.vstack([Y_hat for _, Y_hat in outputs])
-        loss = self.loss(Y_true, Y_hat)
+        print(Y_true.shape, Y_true.dtype, Y_hat.shape, Y_hat.dtype)
+        loss = self.loss(Y_hat, Y_true)
         roc_stats = stats_roc_auc(Y_true.numpy(), Y_hat.numpy())
         self.log("val_loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         self.log("val_roc_auc", roc_stats.avg, on_step=False, on_epoch=True, prog_bar=True, logger=True)
