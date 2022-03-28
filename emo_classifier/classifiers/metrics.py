@@ -65,4 +65,3 @@ def compute_probabilities(model: torch.nn.Module, data_loader: DataLoader) -> tu
     y_true = np.vstack(y_true)
     y_prob = np.vstack(y_prob)
     return y_true, y_prob
-
