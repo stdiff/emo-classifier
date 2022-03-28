@@ -22,7 +22,7 @@ def train_embedding_bag_model_on_local():
     from training.train_embedding_bag import start_train_embedding_bag_model
 
     logger.info(f"Start Training an embedding bag model on local machine")
-    start_train_embedding_bag_model(embedding_dim=32, max_epoch=1, patience=5)
+    start_train_embedding_bag_model(embedding_dim=32, max_epoch=20, patience=3)
 
 
 def train_embedding_bag_model_on_sagemaker():
@@ -40,8 +40,8 @@ def start():
     """
     # start_training_tfidf_model()
     # train_tfidf_model_on_sagemaker()
-    # train_embedding_bag_model_on_local()
-    train_embedding_bag_model_on_sagemaker()
+    train_embedding_bag_model_on_local()
+    # train_embedding_bag_model_on_sagemaker()
 
 
 if __name__ == "__main__":

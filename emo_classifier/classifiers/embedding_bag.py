@@ -36,10 +36,12 @@ class EmbeddingBagModule(pl.LightningModule):
 
         self.embedding = nn.Embedding(num_embeddings=self.vocab_size, embedding_dim=self.embedding_dim)
         self.linear_middle = nn.Linear(in_features=self.embedding_dim, out_features=self.embedding_dim)
+        self.dropout = nn.Dropout(p=0.5)
         self.linear = nn.Linear(in_features=self.embedding_dim, out_features=self.n_labels, bias=False)
 
-        self.weights = torch.tensor([2] * self.n_labels)
-        self.loss = nn.BCEWithLogitsLoss(reduction="sum", pos_weight=self.weights)
+        # self.weights = torch.tensor([2] * self.n_labels)
+        # self.loss = nn.BCEWithLogitsLoss(reduction="sum", pos_weight=self.weights)
+        self.loss = nn.BCEWithLogitsLoss(reduction="sum")
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -48,6 +50,7 @@ class EmbeddingBagModule(pl.LightningModule):
         """
         x = self.embedding(x).mean(dim=1)
         x = self.linear_middle(x)
+        x = self.dropout(x)
         return self.linear(x)
 
     def training_step(self, batch, batch_idx) -> torch.Tensor:

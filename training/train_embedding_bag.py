@@ -67,12 +67,13 @@ class EmbeddingBagTrainer(TrainerBase):
 
         self.classifier = EmbeddingBagClassifier(model)
         y_true, y_prob = compute_probabilities(self.classifier.model, data_module.val_dataloader())
+        n_rows = y_true.shape[0]
 
         print("input:", y_prob.dtype, y_prob)
         print("target:", y_true.dtype, y_true)
 
         self.training_metrics = TrainingMetrics(
-            log_loss=self.classifier.model.loss(torch.from_numpy(y_prob), torch.from_numpy(y_true)).item(),
+            log_loss=self.classifier.model.loss(torch.from_numpy(y_prob), torch.from_numpy(y_true)).item() / n_rows,
             auc_roc=stats_roc_auc(y_true, y_prob).as_dict(),
             best_params=json.dumps(
                 dict(embedding_dim=self.embedding_dim, max_epoch=self.max_epoch, patience=self.patience)
