@@ -144,10 +144,7 @@ class EmbeddingBagClassifier(Model):
         y = self.predict_proba([comment.text])[0, :]
         emotions = [emotion for i, emotion in enumerate(self.emotions) if y[i] > self._dict_thresholds.get(emotion)]
 
-        print(
-            [(emotion, y[i], self._dict_thresholds.get(emotion)) for i, emotion in enumerate(self.emotions)]
-        )
-
+        print([(emotion, y[i], self._dict_thresholds.get(emotion)) for i, emotion in enumerate(self.emotions)])
 
         return Prediction(id=comment.id, labels=emotions)
 
