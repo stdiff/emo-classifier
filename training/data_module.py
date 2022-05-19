@@ -79,7 +79,7 @@ class GoEmotionsDataModule(pl.LightningDataModule):
         if X.shape[1] >= self.input_length:
             return X[:, : self.input_length]
         else:
-            Z = torch.zeros((X.shape[0], self.input_length - X.shape[1]))
+            Z = torch.zeros((X.shape[0], self.input_length - X.shape[1]), dtype=torch.int64)
             return torch.hstack((X, Z))
 
     def XY2TensorDataset(self, X: pd.Series, Y: pd.DataFrame) -> TensorDataset:

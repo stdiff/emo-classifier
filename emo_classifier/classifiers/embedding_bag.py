@@ -108,8 +108,10 @@ class EmbeddingBagClassifier(Model):
 
         if X.shape[1] >= self.input_length:
             return X[:, : self.input_length]
+        if X.shape[1] == 0:
+            return torch.zeros((1, self.input_length), dtype=torch.int64)
         else:
-            Z = torch.zeros((X.shape[0], self.input_length - X.shape[1]))
+            Z = torch.zeros((X.shape[0], self.input_length - X.shape[1]), dtype=torch.int64)
             return torch.hstack((X, Z))
 
     @classmethod
@@ -141,17 +143,23 @@ class EmbeddingBagClassifier(Model):
     def predict(self, comment: Comment) -> Prediction:
         y = self.predict_proba([comment.text])[0, :]
         emotions = [emotion for i, emotion in enumerate(self.emotions) if y[i] > self._dict_thresholds.get(emotion)]
+
+        print(
+            [(emotion, y[i], self._dict_thresholds.get(emotion)) for i, emotion in enumerate(self.emotions)]
+        )
+
+
         return Prediction(id=comment.id, labels=emotions)
 
     def predict_proba(self, texts: Iterable[str]) -> np.ndarray:
         X = self.texts2tensor(texts)
         if X.shape[1] == 0:
-            return np.zeros((X.shape[0], len(self.emotions)))
+            return np.zeros((X.shape[0], len(self.emotions)), dtype=torch.float32)
 
         self.model.eval()
         with torch.no_grad():
             y = torch.softmax(self.model(X), dim=1)
-        return y.detach().numpy()
+        return np.round(y.detach().numpy(), 5)
 
     def predict_proba_in_batch(self, texts, batch_size: int = 256):
         from itertools import islice

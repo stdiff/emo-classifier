@@ -235,7 +235,7 @@ class PredictionOnTestSetEvaluator:
             self._metrics_by_label = pd.DataFrame(
                 {
                     "label": self.labels,
-                    "threshold": s_threshold.values,
+                    "threshold": s_threshold.to_numpy().astype(np.float32),
                     "precision": precision,
                     "recall": recall,
                     "f1_score": f1_score,
