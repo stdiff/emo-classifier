@@ -60,14 +60,16 @@ def test_prediction_coincidence(classifier: Model, df_dev: pd.DataFrame, df_dev_
     """
     This test checks if the model artifact in local can reproduce the predictions made by the training pipeline.
     """
-    df_probability = (
+    # DataFrame[id, label, probability_test]
+    df_api_probability = (
         pd.DataFrame(classifier.predict_proba(df_dev["text"]), index=df_dev.index, columns=classifier.emotions)
         .assign(id=df_dev["id"])
         .melt(id_vars="id", var_name="label", value_name="probability_test")
     )
 
-    ## If IDs of the both data sets agree, then there is no missing data.
-    df_dev_pred = df_dev_pred.merge(df_probability, how="outer")
+    ## Attach the model prediction to the long table df_dev_pred
+    ## If IDs of the both data sets agree, then there is no data lost.
+    df_dev_pred = df_dev_pred.merge(df_api_probability, how="outer")
     assert df_dev_pred.isna().sum().sum() == 0
 
     abs_delta_predictions = (df_dev_pred["probability"] - df_dev_pred["probability_test"]).abs()

@@ -1,4 +1,4 @@
-from typing import Optional, Iterator
+from typing import Optional, Iterator, Iterable
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -21,6 +21,7 @@ class GoEmotionsDataModule(pl.LightningDataModule):
         with_lemmatization: bool = False,
         remove_stopwords: bool = False,
         min_df: int = 10,
+        input_length: int = 10,
         batch_size: int = 32,
         batch_size_eval: int = 128,
         load_vocab: bool = False,
@@ -30,6 +31,7 @@ class GoEmotionsDataModule(pl.LightningDataModule):
         :param with_lemmatization: whether a tokenizer does lemmatization
         :param remove_stopwords: whether a tokenizer removes stopwords
         :param min_df: minimum document frequency (DF). A term with lower DF will be ignored.
+        :param input_length: maximum number of tokens for the input of the model
         :param batch_size: batch size for training
         :param batch_size_eval: batch size for evaluation (validation, test)
         :param load_vocab: if a Vocab instance will be loaded.
@@ -45,7 +47,7 @@ class GoEmotionsDataModule(pl.LightningDataModule):
         self.load_vocab = load_vocab
         self.vocab: Optional[Vocab] = None
         self.padding_index = 0
-        self.maxlen: Optional[int] = None  ## TODO: limit the number of indices in a single text
+        self.input_length = input_length
 
         self.preprocessor: Optional[Preprocessor] = None
         self.ds_train: Optional[TensorDataset] = None
@@ -70,9 +72,15 @@ class GoEmotionsDataModule(pl.LightningDataModule):
         self.vocab.set_default_index(self.vocab[self.unknown_token])
         self.padding_index = self.vocab[self.padding_token]
 
-    def texts2tensor(self, texts: Iterator[str]) -> torch.Tensor:
+    def texts2tensor(self, texts: Iterable[str]) -> torch.Tensor:
         sequences_of_indices = [torch.tensor(self.vocab(self.tokenizer(text))) for text in texts]
-        return pad_sequence(sequences_of_indices, batch_first=True, padding_value=self.padding_index)
+        X = pad_sequence(sequences_of_indices, batch_first=True, padding_value=self.padding_index)
+
+        if X.shape[1] >= self.input_length:
+            return X[:, : self.input_length]
+        else:
+            Z = torch.zeros((X.shape[0], self.input_length - X.shape[1]))
+            return torch.hstack((X, Z))
 
     def XY2TensorDataset(self, X: pd.Series, Y: pd.DataFrame) -> TensorDataset:
         X_tensor = self.texts2tensor(X)

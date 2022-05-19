@@ -14,4 +14,5 @@ tmp/
 
 ## logging
 training/logs/*
+training/tmp_checkpoint
 emo_classifier/resources/training

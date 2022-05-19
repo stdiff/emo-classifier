@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 from importlib import resources
-from typing import Optional, Iterator, BinaryIO
+from typing import Optional, Iterator, BinaryIO, Iterable
 
 import numpy as np
 import pandas as pd
@@ -60,15 +60,14 @@ class EmbeddingBagModule(pl.LightningModule):
         self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         return loss
 
-    def validation_step(self, batch, batch_idx) -> tuple[torch.Tensor, torch.Tensor]:
+    def validation_step(self, batch, batch_idx) -> (torch.Tensor, torch.Tensor):
         X, Y_true = batch
         Y_prob = self(X)
         return Y_true, Y_prob
 
-    def validation_epoch_end(self, outputs: list[tuple[torch.Tensor, torch.Tensor]]):
+    def validation_epoch_end(self, outputs: list[(torch.Tensor, torch.Tensor)]):
         Y_true = torch.vstack([Y_true for Y_true, _ in outputs])
         Y_hat = torch.vstack([Y_hat for _, Y_hat in outputs])
-        print(Y_true.shape, Y_true.dtype, Y_hat.shape, Y_hat.dtype)
         loss = self.loss(Y_hat, Y_true)
         roc_stats = stats_roc_auc(Y_true.numpy(), Y_hat.numpy())
         self.log("val_loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
@@ -86,20 +85,32 @@ class EmbeddingBagModule(pl.LightningModule):
 class EmbeddingBagClassifier(Model):
     artifact_file_name = "embedding_bag.pt"
 
-    def __init__(self, embedding_bag_model: EmbeddingBagModule, vocab: Optional[Vocab] = None):
+    def __init__(self, embedding_bag_model: EmbeddingBagModule, vocab: Optional[Vocab] = None, input_length: int = 10):
+        """
+        :param embedding_bag_model: fitted EmbeddingBagModule instance
+        :param vocab: Vocab instance
+        :param input_length: maximum number of tokens for the input of the model
+        """
         self.tokenizer = SpacyEnglishTokenizer(with_lemmatization, remove_stopwords)
         self.vocab = vocab or load_vocab()
         self.vocab.set_default_index(self.vocab[unknown_token])
         self.model = embedding_bag_model
         self.padding_index = self.vocab[padding_token]
+        self.input_length = input_length
 
         self._thresholds: Optional[Thresholds] = None
         self._s_thresholds: Optional[pd.Series] = None
         self._dict_thresholds: Optional[dict[str, float]] = None
 
-    def texts2tensor(self, texts: Iterator[str]) -> torch.Tensor:
+    def texts2tensor(self, texts: Iterable[str]) -> torch.Tensor:
         sequences_of_indices = [torch.tensor(self.vocab(self.tokenizer(text))) for text in texts]
-        return pad_sequence(sequences_of_indices, batch_first=True, padding_value=self.padding_index)
+        X = pad_sequence(sequences_of_indices, batch_first=True, padding_value=self.padding_index)
+
+        if X.shape[1] >= self.input_length:
+            return X[:, : self.input_length]
+        else:
+            Z = torch.zeros((X.shape[0], self.input_length - X.shape[1]))
+            return torch.hstack((X, Z))
 
     @classmethod
     def load_artifact_file(cls, fp: BinaryIO) -> "EmbeddingBagClassifier":
@@ -132,7 +143,7 @@ class EmbeddingBagClassifier(Model):
         emotions = [emotion for i, emotion in enumerate(self.emotions) if y[i] > self._dict_thresholds.get(emotion)]
         return Prediction(id=comment.id, labels=emotions)
 
-    def predict_proba(self, texts) -> np.ndarray:
+    def predict_proba(self, texts: Iterable[str]) -> np.ndarray:
         X = self.texts2tensor(texts)
         if X.shape[1] == 0:
             return np.zeros((X.shape[0], len(self.emotions)))
