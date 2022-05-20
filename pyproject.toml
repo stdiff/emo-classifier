@@ -21,6 +21,7 @@ torchtext = {version = "~0.10.0", python = "~3.9", platform = "linux"}
 pytorch-lightning = "~1.4.9"
 fastapi = "0.70.1"
 uvicorn = {extras = ["standard"], version = "~0.15.0"}
+torchmetrics = "0.7.2"
 
 ## libraries for the training pipeline and tests
 [tool.poetry.dev-dependencies]
