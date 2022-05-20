@@ -27,7 +27,7 @@ torchmetrics = "0.7.2"
 [tool.poetry.dev-dependencies]
 jupyterlab = "~3.0"
 jupyterlab-code-formatter = "~1.4"
-black = "22.1.0"
+black = "22.3.0"
 isort = "^5.9.1"
 jupytext = "~1.11"
 jupyterlab-git = "~0.30"
