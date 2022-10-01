@@ -156,7 +156,29 @@ def download_sagemaker_outputs_to_local(model_tarball_s3_path: str):
             raise FileNotFoundError(f"Download failed: S3 URI = {model_tarball_s3_path}")
 
         with tarfile.open(model_tarball_local_path, "r:gz") as model_tarball:
-            model_tarball.extractall(local_paths.dir_artifact)
+            
+            import os
+            
+            def is_within_directory(directory, target):
+                
+                abs_directory = os.path.abspath(directory)
+                abs_target = os.path.abspath(target)
+            
+                prefix = os.path.commonprefix([abs_directory, abs_target])
+                
+                return prefix == abs_directory
+            
+            def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
+            
+                for member in tar.getmembers():
+                    member_path = os.path.join(path, member.name)
+                    if not is_within_directory(path, member_path):
+                        raise Exception("Attempted Path Traversal in Tar File")
+            
+                tar.extractall(path, members, numeric_owner) 
+                
+            
+            safe_extract(model_tarball, local_paths.dir_artifact)
             logger.info(
                 f"The archived files in {model_tarball_local_path.name} is saved under {local_paths.dir_artifact}"
             )
@@ -169,7 +191,26 @@ def download_sagemaker_outputs_to_local(model_tarball_s3_path: str):
             raise FileNotFoundError(f"Download failed: S3 URI = {output_tarball_s3_path}")
 
         with tarfile.open(output_tarball_local_path, "r:gz") as output_tarball:
-            output_tarball.extractall(local_paths.dir_resources)
+            def is_within_directory(directory, target):
+                
+                abs_directory = os.path.abspath(directory)
+                abs_target = os.path.abspath(target)
+            
+                prefix = os.path.commonprefix([abs_directory, abs_target])
+                
+                return prefix == abs_directory
+            
+            def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
+            
+                for member in tar.getmembers():
+                    member_path = os.path.join(path, member.name)
+                    if not is_within_directory(path, member_path):
+                        raise Exception("Attempted Path Traversal in Tar File")
+            
+                tar.extractall(path, members, numeric_owner) 
+                
+            
+            safe_extract(output_tarball, local_paths.dir_resources)
             logger.info(
                 f"The archived files in {output_tarball_local_path.name} is saved under {local_paths.dir_resources}"
             )
