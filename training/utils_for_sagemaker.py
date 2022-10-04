@@ -175,7 +175,7 @@ def download_sagemaker_outputs_to_local(model_tarball_s3_path: str):
                     if not is_within_directory(path, member_path):
                         raise Exception("Attempted Path Traversal in Tar File")
             
-                tar.extractall(path, members, numeric_owner) 
+                tar.extractall(path, members, numeric_owner=numeric_owner) 
                 
             
             safe_extract(model_tarball, local_paths.dir_artifact)
@@ -207,7 +207,7 @@ def download_sagemaker_outputs_to_local(model_tarball_s3_path: str):
                     if not is_within_directory(path, member_path):
                         raise Exception("Attempted Path Traversal in Tar File")
             
-                tar.extractall(path, members, numeric_owner) 
+                tar.extractall(path, members, numeric_owner=numeric_owner) 
                 
             
             safe_extract(output_tarball, local_paths.dir_resources)
