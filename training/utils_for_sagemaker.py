@@ -14,6 +14,7 @@ from sagemaker.estimator import Estimator
 
 from emo_classifier import setup_logger
 from training import LocalPaths
+from training.utils import tarball_extract_under_dir
 
 logger = setup_logger(__name__)
 region = "eu-central-1"
@@ -155,11 +156,10 @@ def download_sagemaker_outputs_to_local(model_tarball_s3_path: str):
         except Exception:
             raise FileNotFoundError(f"Download failed: S3 URI = {model_tarball_s3_path}")
 
-        with tarfile.open(model_tarball_local_path, "r:gz") as model_tarball:
-            model_tarball.extractall(local_paths.dir_artifact)
-            logger.info(
+        tarball_extract_under_dir(model_tarball_local_path, local_paths.dir_artifact)
+        logger.info(
                 f"The archived files in {model_tarball_local_path.name} is saved under {local_paths.dir_artifact}"
-            )
+        )
 
         output_tarball_local_path = temp_dir_path / "output.tar.gz"
 
@@ -168,11 +168,10 @@ def download_sagemaker_outputs_to_local(model_tarball_s3_path: str):
         except Exception:
             raise FileNotFoundError(f"Download failed: S3 URI = {output_tarball_s3_path}")
 
-        with tarfile.open(output_tarball_local_path, "r:gz") as output_tarball:
-            output_tarball.extractall(local_paths.dir_resources)
-            logger.info(
+        tarball_extract_under_dir(output_tarball_local_path, local_paths.dir_resources)
+        logger.info(
                 f"The archived files in {output_tarball_local_path.name} is saved under {local_paths.dir_resources}"
-            )
+        )
 
 
 def copy_artifacts_for_outputs_if_on_sagemaker():
