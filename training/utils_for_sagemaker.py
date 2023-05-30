@@ -88,7 +88,6 @@ def archive_training_modules(tar_ball_path: Path):
     pkg_dir = local_paths.project_root / "emo_classifier"
 
     with tarfile.open(tar_ball_path, "w:gz") as tar_file:
-
         files_to_add = [
             pkg_dir / "resources/emotions.txt",
             pkg_dir / "resources/__init__.py",
@@ -157,9 +156,7 @@ def download_sagemaker_outputs_to_local(model_tarball_s3_path: str):
             raise FileNotFoundError(f"Download failed: S3 URI = {model_tarball_s3_path}")
 
         tarball_extract_under_dir(model_tarball_local_path, local_paths.dir_artifact)
-        logger.info(
-                f"The archived files in {model_tarball_local_path.name} is saved under {local_paths.dir_artifact}"
-        )
+        logger.info(f"The archived files in {model_tarball_local_path.name} is saved under {local_paths.dir_artifact}")
 
         output_tarball_local_path = temp_dir_path / "output.tar.gz"
 
@@ -170,7 +167,7 @@ def download_sagemaker_outputs_to_local(model_tarball_s3_path: str):
 
         tarball_extract_under_dir(output_tarball_local_path, local_paths.dir_resources)
         logger.info(
-                f"The archived files in {output_tarball_local_path.name} is saved under {local_paths.dir_resources}"
+            f"The archived files in {output_tarball_local_path.name} is saved under {local_paths.dir_resources}"
         )
 
 

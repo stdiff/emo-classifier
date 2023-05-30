@@ -1,8 +1,10 @@
 from pathlib import Path
 import tarfile
 
+
 def _target_is_under_base_directory(base_directory: Path, target_path: Path):
     return any(base_directory.resolve() == parent.resolve() for parent in target_path.parents)
+
 
 def tarball_extract_under_dir(tarball_path: Path, target_dir: Path):
     """
@@ -18,4 +20,3 @@ def tarball_extract_under_dir(tarball_path: Path, target_dir: Path):
                 raise Exception(f"Unexpected file path: {file_path.resolve()}")
 
         tar_ball.extractall(target_dir)
-
