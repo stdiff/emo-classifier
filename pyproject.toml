@@ -24,15 +24,15 @@ uvicorn = {extras = ["standard"], version = "~0.15.0"}
 torchmetrics = "0.7.2"
 
 ## libraries for the training pipeline and tests
-[tool.poetry.dev-dependencies]
-jupyterlab = "~3.0"
+[tool.poetry.group.dev.dependencies]
+jupyterlab = ">=3.5"
 jupyterlab-code-formatter = "~1.4"
-black = "22.3.0"
+black = {version = "23.3.0", extras = ["jupyter"]}
 isort = "^5.9.1"
 jupytext = "~1.11"
 jupyterlab-git = "~0.30"
 jupyterlab-spellchecker = "~0.6"
-jupyterlab-templates = "^0.3.1"
+jupyterlab-templates = "0.4.0"
 watermark = "^2.2.0"
 altair = "4.2.0"
 jsonschema = ">=3.0,<4.0"
