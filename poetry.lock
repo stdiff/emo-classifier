@@ -1025,6 +1025,7 @@ spacy = ">=3.2.0,<3.3.0"
 [package.source]
 type = "url"
 url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_md-3.2.0/en_core_web_md-3.2.0-py3-none-any.whl"
+
 [[package]]
 name = "entrypoints"
 version = "0.4"
@@ -1255,17 +1256,6 @@ sftp = ["paramiko"]
 smb = ["smbprotocol"]
 ssh = ["paramiko"]
 tqdm = ["tqdm"]
-
-[[package]]
-name = "future"
-version = "0.18.3"
-description = "Clean single-source support for Python 3 and 2"
-category = "main"
-optional = false
-python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
-files = [
-    {file = "future-0.18.3.tar.gz", hash = "sha256:34a17436ed1e96697a86f9de3d15a3b0be01d8bc8de9c1dffd59fb8234ed5307"},
-]
 
 [[package]]
 name = "gitdb"
@@ -3863,38 +3853,40 @@ files = [
 
 [[package]]
 name = "pytorch-lightning"
-version = "1.4.9"
+version = "1.7.7"
 description = "PyTorch Lightning is the lightweight PyTorch wrapper for ML researchers. Scale your models. Write less boilerplate."
 category = "main"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 files = [
-    {file = "pytorch-lightning-1.4.9.tar.gz", hash = "sha256:39cb732483747aeceb3def508fd02a01b329e348720ce90894730e177ad4348e"},
-    {file = "pytorch_lightning-1.4.9-py3-none-any.whl", hash = "sha256:3eb3ce4e1b38b3f37cc3a76b6a29c97c237aa053d45114b6423ffa345c71524a"},
+    {file = "pytorch-lightning-1.7.7.tar.gz", hash = "sha256:27c2dd01a18db2415168e3fa3775ccb5a1fa1e2961a50439ad9365507fe9d4ae"},
+    {file = "pytorch_lightning-1.7.7-py3-none-any.whl", hash = "sha256:4438b8284d7f7fdb06cf3566a7b5b6f102ac8971cf7bb6d3f1b1de64628241f3"},
 ]
 
 [package.dependencies]
 fsspec = {version = ">=2021.05.0,<2021.06.0 || >2021.06.0", extras = ["http"]}
-future = ">=0.17.1"
 numpy = ">=1.17.2"
 packaging = ">=17.0"
-pyDeprecate = "0.3.1"
-PyYAML = ">=5.1"
-tensorboard = ">=2.2.0"
-torch = ">=1.6"
-torchmetrics = ">=0.4.0"
-tqdm = ">=4.41.0"
-typing-extensions = "*"
+pyDeprecate = ">=0.3.1"
+PyYAML = ">=5.4"
+tensorboard = ">=2.9.1"
+torch = ">=1.9"
+torchmetrics = ">=0.7.0"
+tqdm = ">=4.57.0"
+typing-extensions = ">=4.0.0"
 
 [package.extras]
-all = ["check-manifest", "cloudpickle (>=1.3)", "codecov (>=2.1)", "comet-ml (>=3.1.12)", "coverage (>5.2.0)", "gcsfs (>=2021.5.0)", "gym (>=0.17.0)", "horovod (>=0.21.2)", "hydra-core (>=1.0)", "ipython[all]", "jsonargparse[signatures] (>=3.17.0)", "matplotlib (>3.1)", "mlflow (>=1.0.0)", "mypy (>=0.900)", "neptune-client (>=0.4.109)", "nltk (>=3.3)", "omegaconf (>=2.0.1)", "onnx (>=1.7.0)", "onnxruntime (>=1.3.0)", "pandas", "pre-commit (>=1.0)", "pytest (>=6.0)", "scikit-image (>0.17.1)", "scikit-learn (>0.22.1)", "test-tube (>=0.7.5)", "torchtext (>=0.7)", "torchvision (>=0.7)", "twine (==3.2)", "wandb (>=0.8.21)"]
-cpu = ["check-manifest", "cloudpickle (>=1.3)", "codecov (>=2.1)", "comet-ml (>=3.1.12)", "coverage (>5.2.0)", "gcsfs (>=2021.5.0)", "gym (>=0.17.0)", "hydra-core (>=1.0)", "ipython[all]", "jsonargparse[signatures] (>=3.17.0)", "matplotlib (>3.1)", "mlflow (>=1.0.0)", "mypy (>=0.900)", "neptune-client (>=0.4.109)", "nltk (>=3.3)", "omegaconf (>=2.0.1)", "onnx (>=1.7.0)", "onnxruntime (>=1.3.0)", "pandas", "pre-commit (>=1.0)", "pytest (>=6.0)", "scikit-image (>0.17.1)", "scikit-learn (>0.22.1)", "test-tube (>=0.7.5)", "torchtext (>=0.7)", "torchvision (>=0.7)", "twine (==3.2)", "wandb (>=0.8.21)"]
-cpu-extra = ["gcsfs (>=2021.5.0)", "hydra-core (>=1.0)", "jsonargparse[signatures] (>=3.17.0)", "matplotlib (>3.1)", "omegaconf (>=2.0.1)", "onnx (>=1.7.0)", "onnxruntime (>=1.3.0)", "torchtext (>=0.7)"]
-dev = ["check-manifest", "cloudpickle (>=1.3)", "codecov (>=2.1)", "comet-ml (>=3.1.12)", "coverage (>5.2.0)", "gcsfs (>=2021.5.0)", "horovod (>=0.21.2)", "hydra-core (>=1.0)", "jsonargparse[signatures] (>=3.17.0)", "matplotlib (>3.1)", "mlflow (>=1.0.0)", "mypy (>=0.900)", "neptune-client (>=0.4.109)", "nltk (>=3.3)", "omegaconf (>=2.0.1)", "onnx (>=1.7.0)", "onnxruntime (>=1.3.0)", "pandas", "pre-commit (>=1.0)", "pytest (>=6.0)", "scikit-image (>0.17.1)", "scikit-learn (>0.22.1)", "test-tube (>=0.7.5)", "torchtext (>=0.7)", "twine (==3.2)", "wandb (>=0.8.21)"]
-examples = ["gym (>=0.17.0)", "ipython[all]", "torchvision (>=0.7)"]
-extra = ["gcsfs (>=2021.5.0)", "horovod (>=0.21.2)", "hydra-core (>=1.0)", "jsonargparse[signatures] (>=3.17.0)", "matplotlib (>3.1)", "omegaconf (>=2.0.1)", "onnx (>=1.7.0)", "onnxruntime (>=1.3.0)", "torchtext (>=0.7)"]
-loggers = ["comet-ml (>=3.1.12)", "mlflow (>=1.0.0)", "neptune-client (>=0.4.109)", "test-tube (>=0.7.5)", "wandb (>=0.8.21)"]
-test = ["check-manifest", "cloudpickle (>=1.3)", "codecov (>=2.1)", "coverage (>5.2.0)", "mypy (>=0.900)", "nltk (>=3.3)", "pandas", "pre-commit (>=1.0)", "pytest (>=6.0)", "scikit-image (>0.17.1)", "scikit-learn (>0.22.1)", "twine (==3.2)"]
+all = ["cloudpickle (>=1.3)", "codecov (>=2.1)", "comet-ml (>=3.1.12)", "coverage (>=6.4)", "deepspeed (>=0.6.0)", "fairscale (>=0.4.5)", "fastapi", "gcsfs (>=2021.5.0)", "gym[classic-control] (>=0.17.0)", "hivemind (>=1.0.1)", "horovod (>=0.21.2,!=0.24.0)", "hydra-core (>=1.0.5)", "ipython[all]", "jsonargparse[signatures] (>=4.12.0)", "matplotlib (>3.1)", "mlflow (>=1.0.0)", "mypy (==0.971)", "neptune-client (>=0.10.0)", "omegaconf (>=2.0.5)", "onnxruntime", "pandas (>1.0)", "pre-commit (>=1.0)", "protobuf (<=3.20.1)", "psutil", "pytest (>=7.0)", "pytest-cov", "pytest-forked", "pytest-rerunfailures (>=10.2)", "rich (>=10.14.0,!=10.15.0.a)", "scikit-learn (>0.22.1)", "torchtext (>=0.10)", "torchvision (>=0.10)", "uvicorn", "wandb (>=0.10.22)"]
+deepspeed = ["deepspeed (>=0.6.0)"]
+dev = ["cloudpickle (>=1.3)", "codecov (>=2.1)", "comet-ml (>=3.1.12)", "coverage (>=6.4)", "fastapi", "gcsfs (>=2021.5.0)", "hydra-core (>=1.0.5)", "jsonargparse[signatures] (>=4.12.0)", "matplotlib (>3.1)", "mlflow (>=1.0.0)", "mypy (==0.971)", "neptune-client (>=0.10.0)", "omegaconf (>=2.0.5)", "onnxruntime", "pandas (>1.0)", "pre-commit (>=1.0)", "protobuf (<=3.20.1)", "psutil", "pytest (>=7.0)", "pytest-cov", "pytest-forked", "pytest-rerunfailures (>=10.2)", "rich (>=10.14.0,!=10.15.0.a)", "scikit-learn (>0.22.1)", "torchtext (>=0.10)", "uvicorn", "wandb (>=0.10.22)"]
+examples = ["gym[classic-control] (>=0.17.0)", "ipython[all]", "torchvision (>=0.10)"]
+extra = ["gcsfs (>=2021.5.0)", "hydra-core (>=1.0.5)", "jsonargparse[signatures] (>=4.12.0)", "matplotlib (>3.1)", "omegaconf (>=2.0.5)", "protobuf (<=3.20.1)", "rich (>=10.14.0,!=10.15.0.a)", "torchtext (>=0.10)"]
+fairscale = ["fairscale (>=0.4.5)"]
+hivemind = ["hivemind (>=1.0.1)"]
+horovod = ["horovod (>=0.21.2,!=0.24.0)"]
+loggers = ["comet-ml (>=3.1.12)", "mlflow (>=1.0.0)", "neptune-client (>=0.10.0)", "wandb (>=0.10.22)"]
+strategies = ["deepspeed (>=0.6.0)", "fairscale (>=0.4.5)", "hivemind (>=1.0.1)", "horovod (>=0.21.2,!=0.24.0)"]
+test = ["cloudpickle (>=1.3)", "codecov (>=2.1)", "coverage (>=6.4)", "fastapi", "mypy (==0.971)", "onnxruntime", "pandas (>1.0)", "pre-commit (>=1.0)", "psutil", "pytest (>=7.0)", "pytest-cov", "pytest-forked", "pytest-rerunfailures (>=10.2)", "scikit-learn (>0.22.1)", "uvicorn"]
 
 [[package]]
 name = "pytz"
@@ -4949,24 +4941,32 @@ files = [
 
 [[package]]
 name = "torch"
-version = "1.9.1"
+version = "1.12.0"
 description = "Tensors and Dynamic neural networks in Python with strong GPU acceleration"
 category = "main"
 optional = false
-python-versions = ">=3.6.2"
+python-versions = ">=3.7.0"
 files = [
-    {file = "torch-1.9.1-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:06435080ba0a2c8f88b65af0550b973c5aa7771eacd9b17f69057fc7436a8ae2"},
-    {file = "torch-1.9.1-cp36-cp36m-win_amd64.whl", hash = "sha256:b92f934b3c95578b3fd37cc06afca208d63f02b0d01b806e979cb4e46124a7f8"},
-    {file = "torch-1.9.1-cp36-none-macosx_10_9_x86_64.whl", hash = "sha256:54dacb6a3f63c54334fadbf22fb6e9ee865085a4e0368962edff5babda057606"},
-    {file = "torch-1.9.1-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:dd3ca91dc1a9fe3fbcddf035cb2fb8be44d57a527b845cd196ba69249adecccf"},
-    {file = "torch-1.9.1-cp37-cp37m-win_amd64.whl", hash = "sha256:42ca081a2e0e759844e70cad7efd8fcfb2f81634dffa73a226564eb83d989e5b"},
-    {file = "torch-1.9.1-cp37-none-macosx_10_9_x86_64.whl", hash = "sha256:335961a5c893f7b33b29aecbc19382a1a1b0106b3457a1c45148e1e14f8f5e09"},
-    {file = "torch-1.9.1-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:1fb49ca0ca8edefbb3f47f6801482144c3a746ec21a65eb3f0839a1d8fb24705"},
-    {file = "torch-1.9.1-cp38-cp38-win_amd64.whl", hash = "sha256:936d303c5e1d60259fb71d95a33e84d84fececa25a0fae112f6a23286ff183c8"},
-    {file = "torch-1.9.1-cp38-none-macosx_10_9_x86_64.whl", hash = "sha256:351dda9f483486bec66ed838234e96f077e6886c88110bb1e2f4a708ed2356ce"},
-    {file = "torch-1.9.1-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:35ec703bc535bde7e8790ab9500f02d4413d995ac981520501fde95e268781e1"},
-    {file = "torch-1.9.1-cp39-cp39-win_amd64.whl", hash = "sha256:e470697006a4c08e4fb6a645e8ca49b0d36c8e7ccf413deef5161335bd7399f1"},
-    {file = "torch-1.9.1-cp39-none-macosx_10_9_x86_64.whl", hash = "sha256:a198332e2d344d25e423ae2df98d56d83060f19e9f4cf23164dffc8d403efeb8"},
+    {file = "torch-1.12.0-cp310-cp310-manylinux1_x86_64.whl", hash = "sha256:3322d33a06e440d715bb214334bd41314c94632d9a2f07d22006bf21da3a2be4"},
+    {file = "torch-1.12.0-cp310-cp310-manylinux2014_aarch64.whl", hash = "sha256:2568f011dddeb5990d8698cc375d237f14568ffa8489854e3b94113b4b6b7c8b"},
+    {file = "torch-1.12.0-cp310-cp310-win_amd64.whl", hash = "sha256:e3e8348edca3e3cee5a67a2b452b85c57712efe1cc3ffdb87c128b3dde54534e"},
+    {file = "torch-1.12.0-cp310-none-macosx_10_9_x86_64.whl", hash = "sha256:349ea3ba0c0e789e0507876c023181f13b35307aebc2e771efd0e045b8e03e84"},
+    {file = "torch-1.12.0-cp310-none-macosx_11_0_arm64.whl", hash = "sha256:13c7cca6b2ea3704d775444f02af53c5f072d145247e17b8cd7813ac57869f03"},
+    {file = "torch-1.12.0-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:60d06ee2abfa85f10582d205404d52889d69bcbb71f7e211cfc37e3957ac19ca"},
+    {file = "torch-1.12.0-cp37-cp37m-manylinux2014_aarch64.whl", hash = "sha256:a1325c9c28823af497cbf443369bddac9ac59f67f1e600f8ab9b754958e55b76"},
+    {file = "torch-1.12.0-cp37-cp37m-win_amd64.whl", hash = "sha256:fb47291596677570246d723ee6abbcbac07eeba89d8f83de31e3954f21f44879"},
+    {file = "torch-1.12.0-cp37-none-macosx_10_9_x86_64.whl", hash = "sha256:abbdc5483359b9495dc76e3bd7911ccd2ddc57706c117f8316832e31590af871"},
+    {file = "torch-1.12.0-cp37-none-macosx_11_0_arm64.whl", hash = "sha256:72207b8733523388c49d43ffcc4416d1d8cd64c40f7826332e714605ace9b1d2"},
+    {file = "torch-1.12.0-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:0986685f2ec8b7c4d3593e8cfe96be85d462943f1a8f54112fc48d4d9fbbe903"},
+    {file = "torch-1.12.0-cp38-cp38-manylinux2014_aarch64.whl", hash = "sha256:0399746f83b4541bcb5b219a18dbe8cade760aba1c660d2748a38c6dc338ebc7"},
+    {file = "torch-1.12.0-cp38-cp38-win_amd64.whl", hash = "sha256:7ddb167827170c4e3ff6a27157414a00b9fef93dea175da04caf92a0619b7aee"},
+    {file = "torch-1.12.0-cp38-none-macosx_10_9_x86_64.whl", hash = "sha256:2143d5fe192fd908b70b494349de5b1ac02854a8a902bd5f47d13d85b410e430"},
+    {file = "torch-1.12.0-cp38-none-macosx_11_0_arm64.whl", hash = "sha256:44a3804e9bb189574f5d02ccc2dc6e32e26a81b3e095463b7067b786048c6072"},
+    {file = "torch-1.12.0-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:844f1db41173b53fe40c44b3e04fcca23a6ce00ac328b7099f2800e611766845"},
+    {file = "torch-1.12.0-cp39-cp39-manylinux2014_aarch64.whl", hash = "sha256:63341f96840a223f277e498d2737b39da30d9f57c7a1ef88857b920096317739"},
+    {file = "torch-1.12.0-cp39-cp39-win_amd64.whl", hash = "sha256:201abf43a99bb4980cc827dd4b38ac28f35e4dddac7832718be3d5479cafd2c1"},
+    {file = "torch-1.12.0-cp39-none-macosx_10_9_x86_64.whl", hash = "sha256:c0313438bc36448ffd209f5fb4e5f325b3af158cdf61c8829b8ddaf128c57816"},
+    {file = "torch-1.12.0-cp39-none-macosx_11_0_arm64.whl", hash = "sha256:5ed69d5af232c5c3287d44cef998880dadcc9721cd020e9ae02f42e56b79c2e4"},
 ]
 
 [package.dependencies]
@@ -5002,30 +5002,37 @@ text = ["nltk (>=3.6)", "regex (>=2021.9.24)", "tqdm (>=4.41.0)"]
 
 [[package]]
 name = "torchtext"
-version = "0.10.1"
+version = "0.13.0"
 description = "Text utilities and datasets for PyTorch"
 category = "main"
 optional = false
-python-versions = ">=3.5"
+python-versions = ">=3.7"
 files = [
-    {file = "torchtext-0.10.1-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:6f4c0bb24f5f06cb5d636548ac99b4d2aba3449f9f8a0c0f53b8712dbd9b8618"},
-    {file = "torchtext-0.10.1-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:0e0d658143761aaf386bf7e9b6e209e01beea5e96ffe3698ea81228b31d2283e"},
-    {file = "torchtext-0.10.1-cp36-cp36m-win_amd64.whl", hash = "sha256:52d4d22a744adfa344d90c4ebc77d0ac38a4ebdf09fa2ecfa64f339212e68ca2"},
-    {file = "torchtext-0.10.1-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:85d06b4e71fd65695e391b8d614c0c0c12e71f1dc45380fece85036129bd0b80"},
-    {file = "torchtext-0.10.1-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:17a1e84b8fc33ba92b02635cc2471f98c27290dbaa0e43e5d442bc3d172285a6"},
-    {file = "torchtext-0.10.1-cp37-cp37m-win_amd64.whl", hash = "sha256:051a001ab760e459c361719aca181643ca9c0e5212f5ea4213da0e441520145e"},
-    {file = "torchtext-0.10.1-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:d67230cc28df7dd2be6fe6f62de7910bfb3dff8703197d34d1ff56d7103453e1"},
-    {file = "torchtext-0.10.1-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:f10ed1e2751cc56958cbda11639bd56bb3c96d0923a9ff8da0e6771591ad2ad5"},
-    {file = "torchtext-0.10.1-cp38-cp38-win_amd64.whl", hash = "sha256:bec6a60e0420323df356366d266d0caff1ee27e86edf593274824af95b3cc488"},
-    {file = "torchtext-0.10.1-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:46e14c39f52c5db4376bccbaa05ab2122489fdd152f592c1f5f891bc6c8e86e9"},
-    {file = "torchtext-0.10.1-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:9d28b712f921a0407ce61af81c3dc07c48cab56f83d5f72f9a8ed3a4a200dad2"},
-    {file = "torchtext-0.10.1-cp39-cp39-win_amd64.whl", hash = "sha256:bc237e62488c14374cfbcca630045cfba031905fde629eed1ce29a459981e07e"},
+    {file = "torchtext-0.13.0-cp310-cp310-macosx_10_15_x86_64.whl", hash = "sha256:d2366f1eca997169daf631dd128a8c68518b2921e6ece8c881c3721254f18f7d"},
+    {file = "torchtext-0.13.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:6cb9ed93fef03496ca43f689926a8b6eebcdb55b7ff8b3f6c92a20f2396a02c1"},
+    {file = "torchtext-0.13.0-cp310-cp310-manylinux1_x86_64.whl", hash = "sha256:d35d1ee4099ad1ff3389e6879e3c685b59a020fc84cb6f49e4528ef1bd9f371a"},
+    {file = "torchtext-0.13.0-cp310-cp310-manylinux2014_aarch64.whl", hash = "sha256:e474a41a11a85eeaa4adfa00b5ad11360f591c405e6ff28e7381ae4abe629b14"},
+    {file = "torchtext-0.13.0-cp310-cp310-win_amd64.whl", hash = "sha256:f88944e7338a58c7b402c40af754cd409a867f9626475804af8bf66c7c3fb9ca"},
+    {file = "torchtext-0.13.0-cp37-cp37m-macosx_10_15_x86_64.whl", hash = "sha256:f5712c8acd610d66c35959e74389b942ea3c0680cd8a3c43d066bff230fba629"},
+    {file = "torchtext-0.13.0-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:504529fb88e385d66a1b33b5adc345a1cb9882ef14bc6a11eaf5d3fcc4ca19ba"},
+    {file = "torchtext-0.13.0-cp37-cp37m-manylinux2014_aarch64.whl", hash = "sha256:feb5afb02a3289dc38d01b8d17a5254312e2eb0d06d3af2594c98e8b967d9035"},
+    {file = "torchtext-0.13.0-cp37-cp37m-win_amd64.whl", hash = "sha256:c50ad65674f09720baacd965033223ac4d116b696959490dc7c012651909892b"},
+    {file = "torchtext-0.13.0-cp38-cp38-macosx_10_15_x86_64.whl", hash = "sha256:2e14967e91438a2987a0aa8880387a7a92afb7228f7f1ee301ddc0dc290768f5"},
+    {file = "torchtext-0.13.0-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:601bd96a5752844d83ed9ae8b91da9c02f1160b8c0950ebdefbb7a9afb11b737"},
+    {file = "torchtext-0.13.0-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:d07c04d6692fac0d5a88da879d63815567efaa4174a85b384d9deba9040b99db"},
+    {file = "torchtext-0.13.0-cp38-cp38-manylinux2014_aarch64.whl", hash = "sha256:050b496102b7ad2aa573c1bac5020e5cb5d8329403180dd81fc2010f9bdc2bed"},
+    {file = "torchtext-0.13.0-cp38-cp38-win_amd64.whl", hash = "sha256:42af9b07d1216b6f79166e190082d353caccf010546e98869c955a19d031b0b1"},
+    {file = "torchtext-0.13.0-cp39-cp39-macosx_10_15_x86_64.whl", hash = "sha256:13bcb1d5ff4c8794aabf253581465dfef287c178ee950f10ea57fc00ecc7a9b9"},
+    {file = "torchtext-0.13.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:c22bae631eaa416d1dfc70e7cd047af66281dc4ff3ef46adba6b861dff872a88"},
+    {file = "torchtext-0.13.0-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:46a4d8a23e129b5fc481895772efd641e4272e9487fe1854e6f2899b1bf49a59"},
+    {file = "torchtext-0.13.0-cp39-cp39-manylinux2014_aarch64.whl", hash = "sha256:7de321470c07c8559814e1e97989bc0e6ffa99e6988421ecfc06202c13d46529"},
+    {file = "torchtext-0.13.0-cp39-cp39-win_amd64.whl", hash = "sha256:8f91aa99f13b2a659351af939286e5d07bcff3ba93bd43d0a2b780f4fedcdcb8"},
 ]
 
 [package.dependencies]
 numpy = "*"
 requests = "*"
-torch = "1.9.1"
+torch = "1.12.0"
 tqdm = "*"
 
 [[package]]
@@ -5629,4 +5636,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.10"
-content-hash = "142d82a77c349ad2dea7ca13f56d4c0d775b41a348460e787589f6013ce83683"
+content-hash = "fe75a9e91db9294538007eab8a84ee8d462e86089988136257b572d13ef23802"

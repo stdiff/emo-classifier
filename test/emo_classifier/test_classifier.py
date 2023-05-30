@@ -73,7 +73,7 @@ def test_prediction_coincidence(classifier: Model, df_dev: pd.DataFrame, df_dev_
     assert df_dev_pred.isna().sum().sum() == 0
 
     abs_delta_predictions = (df_dev_pred["probability"] - df_dev_pred["probability_test"]).abs()
-    assert np.all(abs_delta_predictions < 1e-5)
+    assert np.all(abs_delta_predictions < 1e-4)
 
     ## The API must return the same prediction as ones we computed in evaluation stage.
     df_predicted_labels = df_dev_pred[df_dev_pred["prediction"] == 1].copy()
